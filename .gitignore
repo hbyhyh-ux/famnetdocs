@@ -1,0 +1,12 @@
+node_modules/
+*.log
+.DS_Store
+
+# Apps Script 연결 및 로그인 정보
+.clasp.json
+.clasprc.json
+
+# 환경변수와 비밀값
+.env
+.env.*
+!.env.example
