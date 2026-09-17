@@ -45,7 +45,7 @@
   button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit;}
   @media(prefers-reduced-motion:reduce){*{transition:none !important;}}
 
-  .shell{max-width:1440px;margin:0 auto;padding:20px;}
+  .shell{max-width:1440px;margin:0 auto;padding:20px 20px 80px;}
 
   /* ---- 상단바 ---- */
   .topbar{display:flex;align-items:center;gap:14px;margin-bottom:16px;flex-wrap:wrap;
@@ -385,7 +385,7 @@
 
   /* ── 휴대폰 ── */
   @media(max-width:640px){
-    .shell{padding:12px;}
+    .shell{padding:12px 12px 110px;}
 
     /* 상단바: 로고 / 연결상태 한 줄, 탭은 아래 전체 폭 */
     .topbar{gap:10px 12px;margin-bottom:12px;padding:13px 15px;border-radius:var(--r-lg);}
@@ -1930,8 +1930,8 @@ $('records-area').addEventListener('click', async e=>{
   if(e.target.closest('.memo-tr')) return;
 
   /* 3) 행 클릭 → 메모 펼치기/접기 (버튼 제외) */
-  if(e.target.closest('.rec-actions')) return;
   if(e.target.dataset.load === undefined && e.target.dataset.remove === undefined){
+    if(e.target.closest('.rec-actions')) return;
     const row = e.target.closest('.rec-row');
     if(row){
       const rowNo = row.dataset.row;
@@ -1990,6 +1990,26 @@ $('records-area').addEventListener('click', async e=>{
   }
   if(d.kind==='order' && d.order){
     $('o-duedate').value=d.order.duedate||''; $('o-addr').value=d.order.addr||''; $('o-mgr').value=d.order.mgr||''; $('o-tel').value=d.order.tel||'';
+  }
+  if((d.kind==='service'||d.kind==='purchase') && d.contract){
+    const c=d.contract;
+    state.contractRole=c.role||'a'; state.contractVat=c.vat==='excl'?'excl':'incl';
+    [...$('seg-contract-role').children].forEach(b=>b.classList.toggle('on',b.dataset.v===state.contractRole));
+    updateContractRoleLabel();
+    [...$('seg-contract-vat').children].forEach(b=>b.classList.toggle('on',b.dataset.v===state.contractVat));
+    $('ct-subject').value=c.subject||''; $('ct-amount').value=c.amount?won(c.amount):'';
+    const cp=c.counterparty||{}; $('cp-name').value=cp.name||''; $('cp-ceo').value=cp.ceo||''; $('cp-bizno').value=cp.bizno||''; $('cp-addr').value=cp.addr||''; $('cp-tel').value=cp.tel||'';
+    $('ct-etc').value=c.etc||''; $('ct-attachments').value=d.kind==='purchase'?cleanPurchaseAttachments(c.attachments||''):c.attachments||'';
+    $('ct-contract-date').value=c.contractDate||d.date||todayStr(); $('ct-date-same-start').checked=!!c.dateSameAsStart;
+    if(d.kind==='service'){
+      const s=c.service||{}; const advance=s.advance==null?50:num(s.advance); const balance=s.balance==null?100-advance:num(s.balance);
+      $('svc-start').value=s.start||''; $('svc-end').value=s.end||''; $('svc-advance').value=advance; $('svc-balance').value=balance; $('svc-payment-range').value=advance;
+    }else{
+      const p=c.purchase||{}; const advance=p.advance==null?50:num(p.advance); const balance=p.balance==null?100-advance:num(p.balance);
+      $('pur-advance').value=advance; $('pur-balance').value=balance; $('pur-payment-range').value=advance;
+      $('pur-guarantee-mode').value=p.guaranteeMode||'rate'; $('pur-guarantee').value=p.guarantee||'10%'; $('pur-delay').value=p.delay||'0.1%'; $('pur-date').value=p.deliveryDate||''; $('pur-place').value=p.deliveryPlace||''; updatePurchaseGuaranteeField();
+    }
+    syncContractDateMode();
   }
   assignedNo = d.no;
   applyKindVisibility(); renderEditor(); renderPaper(); showTab('issue'); toast(no+' 불러왔습니다');
@@ -2073,26 +2093,6 @@ $('cfg-share').onclick=async()=>{
     toast('팀원용 자동 연결 링크를 복사했습니다');
   }catch(e){
     window.prompt('아래 링크를 복사하세요', link);
-  }
-  if((d.kind==='service'||d.kind==='purchase') && d.contract){
-    const c=d.contract;
-    state.contractRole=c.role||'a'; state.contractVat=c.vat==='excl'?'excl':'incl';
-    [...$('seg-contract-role').children].forEach(b=>b.classList.toggle('on',b.dataset.v===state.contractRole));
-    updateContractRoleLabel();
-    [...$('seg-contract-vat').children].forEach(b=>b.classList.toggle('on',b.dataset.v===state.contractVat));
-    $('ct-subject').value=c.subject||''; $('ct-amount').value=c.amount?won(c.amount):'';
-    const cp=c.counterparty||{}; $('cp-name').value=cp.name||''; $('cp-ceo').value=cp.ceo||''; $('cp-bizno').value=cp.bizno||''; $('cp-addr').value=cp.addr||''; $('cp-tel').value=cp.tel||'';
-    $('ct-etc').value=c.etc||''; $('ct-attachments').value=d.kind==='purchase'?cleanPurchaseAttachments(c.attachments||''):c.attachments||'';
-    $('ct-contract-date').value=c.contractDate||d.date||todayStr(); $('ct-date-same-start').checked=!!c.dateSameAsStart;
-    if(d.kind==='service'){
-      const s=c.service||{}; const advance=s.advance==null?50:num(s.advance); const balance=s.balance==null?100-advance:num(s.balance);
-      $('svc-start').value=s.start||''; $('svc-end').value=s.end||''; $('svc-advance').value=advance; $('svc-balance').value=balance; $('svc-payment-range').value=advance;
-    }else{
-      const p=c.purchase||{}; const advance=p.advance==null?50:num(p.advance); const balance=p.balance==null?100-advance:num(p.balance);
-      $('pur-advance').value=advance; $('pur-balance').value=balance; $('pur-payment-range').value=advance;
-      $('pur-guarantee-mode').value=p.guaranteeMode||'rate'; $('pur-guarantee').value=p.guarantee||'10%'; $('pur-delay').value=p.delay||'0.1%'; $('pur-date').value=p.deliveryDate||''; $('pur-place').value=p.deliveryPlace||''; updatePurchaseGuaranteeField();
-    }
-    syncContractDateMode();
   }
 };
 
