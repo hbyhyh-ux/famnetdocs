@@ -1,0 +1,1686 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  @font-face{
+    font-family:'AGothic';
+    src:url(__FONT:agothic-400.woff2__) format('woff2');
+    font-weight:400;font-style:normal;font-display:swap;
+  }
+  @font-face{
+    font-family:'AGothic';
+    src:url(__FONT:agothic-700.woff2__) format('woff2');
+    font-weight:700;font-style:normal;font-display:swap;
+  }
+  :root{
+    /* 문서용 — 인쇄물이므로 각지고 단정하게 유지 */
+    --paper:#ffffff; --line:#c9cfd8; --line-soft:#ededed; --seal:#a8322f;
+
+    /* 앱 UI — 검정 주색, 색은 상태에만 */
+    --ink:#111214;          /* 제목·강조 */
+    --ink-2:#3d4045;        /* 본문 */
+    --ink-soft:#8a8f97;     /* 라벨·보조 */
+    --canvas:#fcfcfc;       /* 화면 배경 */
+    --card:#ffffff;
+    --field:#f5f5f5;        /* 입력 배경 */
+    --nest:#f8f8f8;         /* 카드 안 중첩 블록 */
+    /* 팜넷 로고 색 — 추출값: 청록 #00A878 / 라임 #88C018 */
+    --brand:#00a878;        /* 로고 청록 그린 */
+    --brand-lime:#88c018;   /* 로고 라임 */
+    --accent:#00875f;       /* 채움용 — 흰 글자 대비 확보(4.5:1) */
+    --accent-hover:#00714f;
+    --accent-wash:#e3f5ee;  /* 연한 배경 */
+    --tint:#e3f5ee;         /* 상태 칩 */
+    --tint-ink:#00714f;
+    --ok:#2f9e44; --ok-wash:#e9f6ec;
+    --warn:#c2891b;
+
+    --r-xl:14px; --r-lg:11px; --r-md:8px; --r-sm:6px;
+    --shadow:0 0 12px rgba(127,127,127,.18);
+    --shadow-lift:0 0 24px rgba(127,127,127,.28);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--canvas);color:var(--ink-2);
+    font-family:'AGothic','Pretendard',-apple-system,'Apple SD Gothic Neo','Malgun Gothic','맑은 고딕',system-ui,sans-serif;
+    font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+  button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit;}
+  @media(prefers-reduced-motion:reduce){*{transition:none !important;}}
+
+  .shell{max-width:1440px;margin:0 auto;padding:20px;}
+
+  /* ---- 상단바 ---- */
+  .topbar{display:flex;align-items:center;gap:14px;margin-bottom:16px;flex-wrap:wrap;
+    background:var(--card);border-radius:var(--r-xl);padding:14px 20px;box-shadow:var(--shadow);}
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-logo{height:26px;width:auto;display:block;}
+  .brand-text{font-size:18px;font-weight:700;letter-spacing:-.03em;color:var(--ink);}
+  .conn{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--ink-2);
+    border:none;background:var(--field);padding:8px 14px;border-radius:999px;cursor:pointer;transition:background .15s;}
+  .conn:hover{background:#eceef1;}
+  .dot{width:7px;height:7px;border-radius:50%;background:#c2c6cc;}
+  .dot.on{background:var(--brand);}
+  .dot.off{background:var(--warn);}
+
+  /* ---- 탭 ---- */
+  .tabs{margin-left:auto;display:flex;gap:3px;background:var(--field);padding:4px;border-radius:999px;}
+  .tab{padding:9px 20px;border:none;background:transparent;cursor:pointer;border-radius:999px;
+    font-weight:700;color:var(--ink-soft);transition:all .18s;}
+  .tab:hover{color:var(--ink-2);}
+  .tab.on{background:var(--accent);color:#fff;}
+
+  .layout{display:grid;grid-template-columns:372px 1fr;gap:16px;align-items:start;}
+
+  /* ---- 카드 ---- */
+  .panel{background:var(--card);border:none;border-radius:var(--r-xl);padding:20px;box-shadow:var(--shadow);}
+  .panel h3{margin:0 0 15px;font-size:15px;letter-spacing:-.02em;color:var(--ink);font-weight:700;
+    border:none;padding:0;}
+  .panel + .panel{margin-top:12px;}
+
+  /* ---- 세그먼트 ---- */
+  .seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;}
+  .seg.seg3{grid-template-columns:1fr 1fr 1fr;}
+  .seg.seg4{grid-template-columns:1fr 1fr 1fr 1fr;}
+  .seg.seg2x2{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;}
+  .seg.seg2x2 button{padding:14px 6px;font-size:13.5px;}
+  .seg button{padding:11px 4px;border:1.5px solid var(--line-soft);background:var(--card);border-radius:999px;
+    cursor:pointer;font-weight:700;color:var(--ink-soft);font-size:12.5px;transition:all .16s;}
+  .seg button:hover{border-color:#d6d9de;color:var(--ink-2);}
+  .seg button.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .vat-row{display:flex;align-items:center;gap:12px;margin-bottom:15px;flex-wrap:wrap;}
+  .vat-label{font-size:12.5px;font-weight:700;color:var(--ink-soft);letter-spacing:-.01em;}
+  .qmode-hint{font-size:12px;color:var(--ink-soft);}
+  .type-tag{display:inline-block;margin-left:6px;padding:2px 9px;border-radius:999px;background:var(--tint);color:var(--tint-ink);font-size:10.5px;font-weight:700;vertical-align:middle;}
+  .seg.seg-inline{display:inline-grid;grid-template-columns:auto auto;gap:4px;margin-bottom:0;
+    background:var(--field);padding:4px;border-radius:999px;}
+  .seg.seg-inline button{padding:7px 17px;font-size:12.5px;border-radius:999px;background:transparent;border:none;}
+  .seg.seg-inline button:hover{color:var(--accent);}
+  .seg.seg-inline button.on{background:var(--card);color:var(--accent);box-shadow:0 0 8px rgba(127,127,127,.16);}
+  .seg.seg-vat4{grid-template-columns:repeat(4,auto);}
+  .seg.seg-vat4 button{padding:7px 13px;}
+  @media(max-width:640px){
+    .vat-row{align-items:flex-start;flex-direction:column;gap:8px;}
+    .seg.seg-vat4{grid-template-columns:1fr 1fr;width:100%;}
+  }
+
+  /* ---- 입력 ---- */
+  label.f{display:block;margin-bottom:12px;}
+  label.f > i{display:block;font-style:normal;font-size:12px;color:var(--ink-soft);font-weight:700;margin-bottom:5px;letter-spacing:-.01em;}
+  .in{width:100%;padding:11px 13px;border:1.5px solid transparent;border-radius:var(--r-md);
+    background:var(--field);color:var(--ink);font-weight:700;transition:all .16s;}
+  .in::placeholder{color:#b0b5bd;font-weight:400;}
+  .in:hover{background:#eceef1;}
+  .in:focus{outline:none;border-color:var(--accent);background:var(--card);box-shadow:0 0 0 3px rgba(0,168,120,.18);}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .two.wide{grid-template-columns:1.7fr 1fr;}
+  .cert-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 14px;}
+  @media(min-width:641px) and (max-width:760px){.cert-grid{grid-template-columns:1fr 1fr;}}
+
+  /* ---- 버튼 ---- */
+  .btn{padding:12px 16px;border:1.5px solid var(--line-soft);background:var(--card);border-radius:999px;
+    cursor:pointer;font-weight:700;color:var(--ink);transition:all .16s;}
+  .btn:hover{background:var(--field);border-color:#d6d9de;}
+  .btn:active{transform:scale(.985);}
+  .btn:disabled{opacity:.4;cursor:default;transform:none;}
+  .btn-main{background:var(--accent);border:none;color:#fff;width:100%;padding:16px;font-size:15px;
+    border-radius:var(--r-lg);letter-spacing:-.01em;box-shadow:0 0 12px rgba(127,127,127,.10);}
+  .btn-main:hover{background:var(--accent-hover);box-shadow:0 0 16px rgba(127,127,127,.22);}
+  .btn-main:active{transform:scale(.99);}
+  .btn-main:disabled{background:#b9bdc3;box-shadow:none;}
+  .btn-row{display:flex;gap:8px;margin-top:10px;}
+  .btn-row .btn{flex:1;}
+  .btn-sm{padding:7px 14px;font-size:12px;border:1.5px solid var(--line-soft);background:var(--card);
+    border-radius:999px;cursor:pointer;font-weight:700;color:var(--ink-2);transition:all .16s;}
+  .btn-sm:hover{background:var(--field);border-color:#d6d9de;}
+  .btn-sm:disabled{opacity:.5;cursor:default;background:var(--field);}
+  .note{font-size:11.5px;color:var(--ink-soft);margin-top:10px;line-height:1.55;}
+  /* 패널 안 구분선 */
+  .panel-div{border:none;border-top:1px solid var(--line-soft);margin:4px 0 14px;}
+  /* 담당자 선택 줄 */
+  .pick-row{display:flex;gap:9px;align-items:center;margin-bottom:13px;}
+  .pick-row .in{flex:1;min-width:0;padding:10px 12px;cursor:pointer;font-weight:400;}
+  .contact-actions{display:flex;gap:7px;margin:-2px 0 2px;}
+
+  /* ---- 품목표 ---- */
+  .items{width:100%;border-collapse:separate;border-spacing:0 4px;margin-top:2px;table-layout:fixed;}
+  .items th{font-size:12px;color:var(--ink-soft);text-align:left;padding:2px 4px 6px;border:none;
+    font-weight:700;letter-spacing:-.01em;position:relative;}
+  /* 열 경계 손잡이 — 드래그해서 너비 조정 */
+  .col-grip{position:absolute;top:0;right:-5px;width:11px;height:100%;cursor:col-resize;
+    z-index:2;display:flex;align-items:center;justify-content:center;}
+  .col-grip::before{content:'';width:2px;height:13px;border-radius:1px;background:transparent;transition:background .15s;}
+  .items thead:hover .col-grip::before{background:#dcdcdc;}
+  .col-grip:hover::before{background:var(--accent);height:16px;}
+  .amt-cell{text-align:right;padding-right:10px !important;font-weight:700;color:var(--ink);vertical-align:middle;}
+  .hdr-edit{display:inline-block;min-width:24px;padding:3px 9px;border-radius:999px;cursor:text;
+    border:1.5px dashed transparent;outline:none;transition:all .15s;}
+  .hdr-edit:hover{border-color:#d6d9de;background:var(--field);}
+  .hdr-edit:focus{border-color:var(--accent);border-style:solid;background:var(--card);color:var(--ink);}
+  .hdr-edit.custom{color:var(--accent);background:var(--tint);border-color:transparent;}
+  .items td{padding:0 2px;border:none;}
+  .items input{width:100%;padding:10px 11px;border:1.5px solid transparent;border-radius:var(--r-md);
+    background:var(--field);color:var(--ink);font-weight:700;transition:all .16s;}
+  .items input::placeholder{font-weight:400;}
+  .items input:hover{background:#eceef1;}
+  .items input:focus{outline:none;border-color:var(--accent);background:var(--card);box-shadow:0 0 0 3px rgba(0,168,120,.18);}
+  .items input.num{text-align:right;}
+  .items input.mid{text-align:center;}
+  /* 열 형식 배지 — 눌러서 숫자/텍스트 전환 */
+  .type-badge{display:inline-block;margin-right:5px;padding:1px 5px;border-radius:4px;
+    font-size:9.5px;font-weight:700;line-height:1.5;cursor:pointer;user-select:none;
+    background:var(--field);color:var(--ink-soft);border:1px solid transparent;
+    vertical-align:middle;transition:all .15s;}
+  .type-badge:hover{border-color:var(--accent);color:var(--accent);}
+  .type-badge.num{background:var(--accent-wash);color:var(--accent);}
+  .type-badge.fixed{cursor:default;opacity:.45;}
+  .type-badge.fixed:hover{border-color:transparent;color:var(--ink-soft);}
+  .del{border:none;background:none;color:#c2c6cc;cursor:pointer;font-size:17px;line-height:1;padding:3px 7px;
+    border-radius:50%;transition:all .15s;}
+  .del:hover{color:var(--seal);background:#fbeceb;}
+
+  .stage{display:flex;justify-content:center;overflow:hidden;}
+  .paper-scaler{transform-origin:top center;}
+  .paper{background:var(--paper);width:794px;min-height:1123px;padding:46px 44px;border:none;
+    border-radius:6px;box-shadow:var(--shadow-lift);color:#000;}
+  .doc-title{text-align:center;font-size:34px;font-weight:700;letter-spacing:.5em;margin:0 0 4px;padding-left:.5em;}
+  .doc-title.order-title{text-decoration:underline;text-underline-offset:10px;}
+  .doc-no{text-align:center;font-size:11px;color:#555;letter-spacing:.06em;margin-bottom:24px;}
+
+  .head{display:grid;grid-template-columns:1fr 1.65fr;gap:20px;margin-bottom:24px;align-items:start;}
+  table.box{width:100%;border-collapse:collapse;}
+  table.box th,table.box td{border:1px solid #555;padding:8px 10px;font-size:13px;}
+  table.box th{background:#f2f2f2;text-align:center;font-weight:700;white-space:nowrap;}
+  table.box td{text-align:center;}
+  .supplier-title{text-align:center;background:#f2f2f2;font-weight:700;letter-spacing:.4em;padding:7px;border:1px solid #555;border-bottom:none;}
+  .sealwrap{position:relative;}
+  .seal-mark{position:absolute;right:8px;top:26px;width:62px;height:62px;border:2px solid var(--seal);border-radius:50%;
+    color:var(--seal);display:flex;align-items:center;justify-content:center;text-align:center;font-size:10px;font-weight:700;
+    line-height:1.15;transform:rotate(-8deg);opacity:.85;}
+  .seal-mark.img{border:none;border-radius:0;transform:none;opacity:1;width:72px;height:72px;top:20px;}
+  .seal-mark img{width:100%;height:100%;object-fit:contain;}
+
+  .amountbox td.big{font-size:17px;font-weight:700;text-align:right;padding-right:14px;letter-spacing:-.01em;}
+
+  /* 표 위 오른쪽 VAT 표기 — 단가 열을 넓히지 않으려고 표 밖으로 뺐다 */
+  .vat-note{text-align:right;font-size:12.5px;font-weight:700;margin-bottom:5px;color:#000;}
+  table.grid{width:100%;border-collapse:collapse;margin-bottom:18px;}
+  table.grid th,table.grid td{border:1px solid #555;padding:9px 8px;font-size:13px;height:34px;}
+  table.grid th{background:#f2f2f2;text-align:center;font-weight:700;}
+  table.grid td.c{text-align:center;}
+  table.grid td.r{text-align:right;}
+  table.grid tr.empty td{color:#fff;}
+
+  .totals{display:flex;justify-content:flex-end;margin-bottom:20px;}
+  .totals table{border-collapse:collapse;min-width:320px;}
+  .totals th{background:#f2f2f2;border:1px solid #555;padding:9px 16px;font-size:13px;text-align:center;white-space:nowrap;}
+  .totals td{border:1px solid #555;padding:9px 14px;font-size:13px;text-align:right;min-width:170px;}
+  .totals tr.grand th{background:#e2e5e9;font-weight:700;}
+  .totals tr.grand td{font-weight:700;font-size:15px;}
+
+  .memo-label{display:inline-block;border:1px solid #555;border-bottom:none;background:#f2f2f2;padding:6px 26px;font-weight:700;font-size:13px;}
+  .memo-body{border:1px solid #555;min-height:96px;padding:10px 12px;font-size:13px;white-space:pre-wrap;}
+
+  /* 원산지증명서 전용 */
+  .paper.cert-mode{padding:76px 78px 50px;}
+  .cert-title{text-align:center;font-size:38px;font-weight:700;letter-spacing:.4em;padding-left:.4em;margin:10px 0 6px;}
+  .cert-no{text-align:right;font-size:11px;color:#777;letter-spacing:.05em;margin-bottom:52px;}
+  .cert-list{padding:0 14px;font-size:15.5px;}
+  .cert-item{margin-bottom:22px;}
+  .cert-item b{font-weight:700;}
+  .cert-block{margin-bottom:24px;}
+  .cert-block > .cert-item{margin-bottom:10px;}
+  .cert-kv{border-collapse:collapse;margin:0 0 0 6px;}
+  .cert-kv td{padding:5px 0;font-size:15px;line-height:1.6;border:none;}
+  .cert-kv td.k{width:118px;color:#333;white-space:nowrap;}
+  .cert-kv td.v{padding-left:4px;}
+  .cert-sign{margin-top:110px;display:flex;justify-content:center;align-items:center;gap:18px;}
+  .cert-sign-text{font-size:28px;font-weight:700;letter-spacing:.03em;}
+  .cert-seal{width:76px;height:76px;border:2px solid var(--seal);border-radius:50%;color:var(--seal);
+    display:flex;align-items:center;justify-content:center;text-align:center;font-size:10px;font-weight:700;
+    line-height:1.15;transform:rotate(-8deg);opacity:.85;flex:none;}
+  .cert-seal.img{border:none;border-radius:0;transform:none;opacity:1;}
+  .cert-seal img{width:100%;height:100%;object-fit:contain;}
+
+  /* ---- 발행 기록 ---- */
+  .rec{width:100%;max-width:1020px;border-collapse:separate;border-spacing:0;background:var(--card);
+    table-layout:fixed;border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow);}
+  .rec th{background:var(--card);color:var(--ink-soft);padding:15px 14px 11px;font-size:11.5px;text-align:left;
+    font-weight:700;letter-spacing:-.01em;border:none;}
+  .rec td{border-top:1px solid var(--line-soft);padding:14px;font-size:13px;color:var(--ink-2);}
+  .rec td.ellip{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .rec tr:hover td{background:var(--nest);}
+  .rec-row{cursor:pointer;transition:background .15s;}
+  .rec-row.open td{background:var(--nest);}
+  .memo-dot{display:inline-block;margin-left:6px;padding:2px 9px;border-radius:999px;
+    background:var(--field);color:var(--ink-soft);font-size:10.5px;font-weight:700;vertical-align:middle;}
+  .memo-tr td{background:var(--nest);border-top:none;padding:0 14px 16px;}
+  .memo-tr:hover td{background:var(--nest);}
+  .memo-box{display:flex;flex-direction:column;gap:10px;}
+  .memo-text{resize:vertical;background:var(--card);font-size:13px;font-weight:400;border-color:transparent;}
+  .memo-actions{display:flex;align-items:center;gap:11px;}
+  .memo-save{border-color:var(--accent);color:#fff;background:var(--accent);}
+  .memo-save:hover{background:var(--accent-hover);border-color:var(--accent-hover);color:#fff;}
+  .memo-hint{font-size:12px;color:var(--ok);font-weight:700;}
+  .pill{display:inline-block;padding:4px 12px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:-.01em;
+    background:var(--field);color:var(--ink);}
+  .pill.q{background:var(--tint);color:var(--tint-ink);}
+  .pill.t{background:#fdecea;color:#c0392b;}
+  .pill.c{background:var(--ok-wash);color:#2b7a35;}
+  .pill.b{background:#fbf1de;color:#8f6413;}
+  .empty-state{padding:64px 24px;text-align:center;color:var(--ink-soft);background:var(--card);
+    border:none;border-radius:var(--r-xl);max-width:1020px;box-shadow:var(--shadow);}
+  .rec-bar{display:flex;align-items:center;gap:11px;margin-bottom:10px;max-width:1020px;}
+  .rec-bar .note{margin:0;}
+
+  /* ---- 모달 ---- */
+  .modal{position:fixed;inset:0;background:rgba(127,127,127,.34);backdrop-filter:blur(4px);
+    display:flex;align-items:center;justify-content:center;z-index:50;padding:16px;}
+  .modal .panel{width:460px;max-width:100%;box-shadow:var(--shadow-lift);}
+
+  /* ---- 토스트 ---- */
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(8px);background:var(--ink);color:#fff;
+    padding:14px 26px;border-radius:999px;font-weight:700;font-size:13.5px;opacity:0;pointer-events:none;
+    transition:opacity .25s,transform .25s;z-index:99;box-shadow:var(--shadow-lift);}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+  .hide{display:none !important;}
+
+  /* ══════════════════ 반응형 ══════════════════
+     데스크톱(1024↑)  2단: 좌측 설정 + 우측 품목/미리보기
+     태블릿(1023↓)    1단 스택, 작성 순서대로 재배치
+     휴대폰(640↓)     품목표를 카드형으로, 터치 목표 44px 이상       */
+
+  .preview-bar{display:none;}
+  .preview-bar .btn-sm{width:100%;padding:14px;font-size:13.5px;}
+
+  /* ── 태블릿 이하: 1단 + 작성 순서 재배치 ── */
+  @media(max-width:1023px){
+    .layout{display:flex;flex-direction:column;gap:12px;align-items:stretch;}
+    .side, #main-col{display:contents;}
+    .panel + .panel{margin-top:0;}
+    #panel-kind    {order:1;}
+    #panel-issue   {order:2;}
+    #panel-supplier{order:3;}
+    #panel-seal    {order:4;}
+    #panel-items   {order:5;}
+    #panel-cert    {order:5;}
+    #panel-order   {order:6;}
+    #panel-memo    {order:7;}
+    .preview-bar   {order:8;display:block;}
+    .stage         {order:9;}
+    #panel-actions {order:10;}
+    #main-col > div[style*="height:14px"]{display:none;}
+  }
+
+  /* ── 태블릿·휴대폰: 미리보기 접기 + 발행 버튼 하단 고정 ── */
+  @media(max-width:1023px){
+    body.preview-collapsed .stage{display:none;}
+    #panel-actions{position:sticky;bottom:0;z-index:20;
+      padding-bottom:max(18px, env(safe-area-inset-bottom));
+      box-shadow:0 -1px 0 var(--line-soft), 0 -6px 22px rgba(127,127,127,.16);}
+    #panel-actions .note{display:none;}
+  }
+
+  /* ── 휴대폰 ── */
+  @media(max-width:640px){
+    .shell{padding:12px;}
+
+    /* 상단바: 로고 / 연결상태 한 줄, 탭은 아래 전체 폭 */
+    .topbar{gap:10px 12px;margin-bottom:12px;padding:13px 15px;border-radius:var(--r-lg);}
+    .brand{flex:1;min-width:0;}
+    .brand-text{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .brand-logo{height:22px;}
+    .conn{flex:none;padding:9px 13px;}
+    .tabs{margin-left:0;width:100%;order:5;}
+    .tabs .tab{flex:1;text-align:center;padding:12px 8px;}
+
+    .panel{padding:16px;border-radius:var(--r-lg);}
+    .panel h3{font-size:14.5px;margin-bottom:13px;}
+
+    /* 터치 목표 확대 (44px 이상) */
+    .in{padding:13px 12px;font-size:16px;}          /* 16px: iOS 자동 확대 방지 */
+    .btn{padding:14px 16px;}
+    .btn-sm{padding:11px 15px;}
+    .btn-main{padding:17px;font-size:16px;}
+    .seg button{padding:15px 6px;font-size:13px;}
+    .seg.seg-inline{width:100%;}
+    .seg.seg-inline button{padding:12px 8px;}
+    .seg.seg-vat4{grid-template-columns:1fr 1fr;width:100%;}
+    .two, .two.wide{grid-template-columns:1fr;}
+    .cert-grid{grid-template-columns:1fr;}
+    .cert-grid label.f[style*="span 2"],
+    .cert-grid label.f[style*="span 3"]{grid-column:1 / -1 !important;}
+    .contact-actions{flex-wrap:wrap;}
+    .contact-actions .btn-sm{flex:1;}
+
+    /* ── 품목표 → 카드형 ──
+       열 제목은 없애지 않고 칩 줄로 바꿔, 이름 편집과 형식 전환을 그대로 쓴다. */
+    .items{display:block;border-spacing:0;table-layout:auto;}
+    .items colgroup{display:none;}
+
+    .items thead{display:block;margin-bottom:12px;}
+    .items thead tr{display:flex;flex-wrap:wrap;gap:6px;}
+    .items th{display:inline-flex;align-items:center;gap:2px;
+      background:var(--nest);border-radius:999px;padding:7px 12px;
+      font-size:12px;text-align:left !important;}
+    .items th:last-child{display:none;}       /* 삭제 열 머리글 */
+    .items .col-grip{display:none;}           /* 드래그 조정은 데스크톱 전용 */
+    .items thead .hdr-edit{padding:0 2px;border:none;}
+
+    .items tbody{display:block;}
+    .items tr[data-rownum]{position:relative;display:grid;
+      grid-template-columns:1fr 1fr;gap:10px 10px;
+      background:var(--nest);border-radius:var(--r-md);
+      padding:34px 12px 14px;margin-bottom:10px;}
+    .items tr[data-rownum]::before{content:'품목 ' attr(data-rownum);
+      position:absolute;top:11px;left:14px;
+      font-size:11px;font-weight:700;color:var(--ink-soft);}
+    .items td{display:block;padding:0;}
+    .items td::before{content:attr(data-label);display:block;
+      font-size:11.5px;font-weight:700;color:var(--ink-soft);
+      margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    /* 품명과 비고는 한 줄 전체를 쓴다 */
+    .items td[data-key="name"],
+    .items td[data-key="memo"]{grid-column:1 / -1;}
+    .items input{background:var(--card);text-align:left !important;
+      padding:13px 12px;font-size:16px;}
+    .items td.amt-cell{text-align:left !important;font-size:15px;
+      display:flex;flex-direction:column;justify-content:flex-end;}
+    .items td.del-cell{position:absolute;top:4px;right:6px;}
+    .items td.del-cell::before{display:none;}
+    .del{font-size:22px;padding:8px 12px;}
+
+    /* 발행 기록: 가로 스크롤 */
+    #records-area{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    .rec{min-width:840px;}
+    .rec-bar{flex-wrap:wrap;}
+
+    .modal{padding:12px;}
+    .modal .panel{border-radius:var(--r-lg);}
+    .toast{left:12px;right:12px;transform:translateY(8px);text-align:center;}
+    .toast.on{transform:translateY(0);}
+  }
+
+  /* 아주 좁은 화면: 카드 안도 1열 */
+  @media(max-width:400px){
+    .items tr[data-rownum]{grid-template-columns:1fr;}
+    .seg.seg2x2{grid-template-columns:1fr;grid-template-rows:none;}
+  }
+
+  @media print{
+    body{background:#fff;}
+    .shell{padding:0;max-width:none;}
+    /* 인쇄에는 문서(.paper)만 남긴다.
+       우측 열의 입력 패널은 모두 숨기고, 미리보기 축소도 해제한다. */
+    .topbar,.tabs,#view-records,.toast,.modal{display:none !important;}
+    /* 중첩 구조와 무관하게 입력 패널을 모두 숨긴다 */
+    .layout .panel, .preview-bar{display:none !important;}
+    .layout{display:block !important;}
+    .side, #main-col{display:block !important;}
+    .layout div[style*="height:14px"]{display:none !important;}
+    body.preview-collapsed .stage{display:block !important;}
+    .preview-bar{display:none !important;}
+    .paper-scaler{transform:none !important;height:auto !important;}
+    .stage{overflow:visible !important;display:block !important;}
+    .paper{width:auto;min-height:0;border:none;border-radius:0;box-shadow:none;padding:0;}
+    @page{size:A4;margin:14mm;}
+  }
+</style>
+
+<div class="shell">
+  <div class="topbar">
+    <div class="brand"><img class="brand-logo" src="__IMG:famnet-logo.png__" alt="FAMNET"><span class="brand-text">팜넷 문서발행 시스템</span></div>
+    <button class="conn" id="conn"><span class="dot" id="conn-dot"></span><span id="conn-text">연결 확인 중</span></button>
+    <div class="tabs">
+      <button class="tab on" id="tab-issue">문서 작성</button>
+      <button class="tab" id="tab-records">발행 기록</button>
+    </div>
+  </div>
+
+  <!-- ================= 작성 ================= -->
+  <div class="layout" id="view-issue">
+    <div class="side">
+      <div class="panel" id="panel-kind">
+        <h3>문서 종류</h3>
+        <div class="seg seg2x2" id="seg-kind">
+          <button data-v="quote" class="on">견적서</button>
+          <button data-v="invoice">거래명세서</button>
+          <button data-v="order">발주서</button>
+          <button data-v="cert">원산지증명서</button>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-issue">
+        <h3>발행 정보</h3>
+        <label class="f"><i>발행자</i><input class="in" id="f-issuer" placeholder="본인의 이름을 입력해주세요."></label>
+        <label class="f"><i>발행일자</i><input type="date" class="in" id="f-date"></label>
+        <label class="f" id="field-client"><i id="field-client-label">수신업체(수신자)</i><input class="in" id="f-client" placeholder="예: 00업체"></label>
+      </div>
+
+      <div class="panel" id="panel-supplier">
+        <h3>공급자<span id="supplier-label-sub"></span></h3>
+        <label class="f"><i>사업자번호</i><input class="in" id="s-bizno" value="114-86-70323"></label>
+        <div class="two wide">
+          <label class="f"><i>업체명</i><input class="in" id="s-name" value="팜넷 협동조합"></label>
+          <label class="f"><i>대표</i><input class="in" id="s-ceo" value="최태환"></label>
+        </div>
+        <label class="f"><i>주소</i><input class="in" id="s-addr" value="서울시 금천구 디지털로10길 37 812호"></label>
+        <div id="supplier-contact-block">
+          <hr class="panel-div">
+          <div class="pick-row">
+            <select class="in" id="contact-pick"></select>
+          </div>
+          <label class="f"><i>담당자</i><input class="in" id="s-mgr" placeholder="예: 홍길동 과장"></label>
+          <label class="f"><i>전화번호</i><input class="in" id="s-tel" placeholder="예: 010-0000-0000"></label>
+          <label class="f"><i>이메일</i><input class="in" id="s-mail" placeholder="예: name@famnet.co.kr"></label>
+          <div class="contact-actions">
+            <button class="btn-sm" id="btn-contact-save" title="현재 담당자·전화번호·이메일을 목록에 저장">담당자 저장</button>
+            <button class="btn-sm" id="btn-contact-del" title="선택한 담당자를 목록에서 삭제">삭제</button>
+          </div>
+        </div>
+        <label class="f" id="field-cert-title" class="hide"><i>서명 직함</i><input class="in" id="c-title" value="이사장"></label>
+      </div>
+
+      <div class="panel" id="panel-seal">
+        <h3>도장</h3>
+        <label class="f"><i>도장 이미지 (PNG 권장, 배경 투명)</i>
+          <input type="file" class="in" id="s-seal" accept="image/*"></label>
+        <div id="seal-status" class="note">기본 원형 마크가 표시됩니다.</div>
+      </div>
+
+      <!-- 원산지증명서·발주서 전용 입력과 기타 사항은 우측으로 이동됨 -->
+
+      <div class="panel" id="panel-actions">
+        <button class="btn-main" id="btn-issue">발행하고 PDF로 인쇄</button>
+        <div class="btn-row">
+          <button class="btn" id="btn-print">인쇄만</button>
+          <button class="btn" id="btn-reset">새 문서</button>
+        </div>
+        <p class="note">인쇄 창에서 대상을 <b>PDF로 저장</b>으로 선택하면 PDF 파일이 만들어집니다.</p>
+        <p class="note" id="storage-note"></p>
+      </div>
+    </div>
+
+    <div id="main-col">
+      <div class="panel stage-tools" id="panel-items">
+        <h3>품목</h3>
+        <div id="qmode-block">
+          <div class="vat-row">
+            <span class="vat-label">견적 유형</span>
+            <div class="seg seg-inline" id="seg-qmode">
+              <button data-v="unit" class="on">단가형</button>
+              <button data-v="total">총액형</button>
+            </div>
+            <span class="qmode-hint" id="qmode-hint">품목별 단가만 제시합니다</span>
+          </div>
+        </div>
+        <div id="vat-block">
+          <div class="vat-row">
+            <span class="vat-label">부가세 처리</span>
+            <div class="seg seg-inline seg-vat4" id="seg-vat">
+              <button data-v="incl" class="on">VAT 포함</button>
+              <button data-v="excl">VAT 별도</button>
+              <button data-v="exempt">면세</button>
+              <button data-v="zero">영세율</button>
+            </div>
+          </div>
+        </div>
+        <table class="items">
+          <colgroup id="items-colgroup"></colgroup>
+          <thead><tr id="items-head"></tr></thead>
+          <tbody id="items-body"></tbody>
+        </table>
+        <div class="btn-row">
+          <button class="btn-sm" id="btn-addrow">+ 품목 추가</button>
+          <button class="btn-sm" id="btn-reset-hdr">열 초기화</button>
+        </div>
+        <div id="period-block" class="hide">
+          <label class="f" style="margin:14px 0 0"><i>유효기간 · 과업기간</i>
+            <input class="in" id="f-period" placeholder="예: 견적 유효기간 30일 / 과업기간 2026.09.01 ~ 2026.12.31"></label>
+        </div>
+      </div>
+
+      <div class="panel hide" id="panel-cert">
+        <h3>원산지증명서 항목</h3>
+        <div class="cert-grid">
+          <label class="f"><i>품명</i><input class="in" id="c-item" placeholder="예: 그린키위"></label>
+          <label class="f"><i>공급품목</i><input class="in" id="c-supply" placeholder="예: 키위(국내산) 100%"></label>
+          <label class="f"><i>원산지</i><input class="in" id="c-origin" placeholder="예: 국산(보성)"></label>
+          <label class="f"><i>금회 공급일</i><input type="date" class="in" id="c-date"></label>
+          <label class="f"><i>금회 공급량</i><input class="in" id="c-qty" placeholder="예: 30kg"></label>
+        </div>
+        <div class="cert-grid" style="margin-top:4px">
+          <label class="f"><i>납품처 상호</i><input class="in" id="c-buyer-name" placeholder="예: 주식회사 봉동댁"></label>
+          <label class="f"><i>납품처 사업자번호</i><input class="in" id="c-buyer-bizno" placeholder="000-00-00000"></label>
+          <label class="f" style="grid-column:span 2"><i>납품처 주소</i><input class="in" id="c-buyer-addr" placeholder="예: 전라북도 완주군 이서면 용서1길 172, 1층"></label>
+        </div>
+      </div>
+
+      <div class="panel hide" id="panel-order">
+        <h3>납기 정보</h3>
+        <div class="cert-grid">
+          <label class="f"><i>납기일</i><input type="date" class="in" id="o-duedate"></label>
+          <label class="f" style="grid-column:span 2"><i>도착지 주소</i><input class="in" id="o-addr" placeholder=""></label>
+        </div>
+        <div class="cert-grid" style="margin-top:4px">
+          <label class="f"><i>도착지 담당자명</i><input class="in" id="o-mgr" placeholder="예: 000 대리"></label>
+          <label class="f"><i>도착지 연락처</i><input class="in" id="o-tel" placeholder="예: 010-0000-0000"></label>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-memo">
+        <h3>기타 사항</h3>
+        <textarea class="in" id="f-memo" rows="3" placeholder="입금계좌, 납기, 특기사항 등"></textarea>
+      </div>
+
+      <div class="preview-bar" id="preview-bar">
+        <button class="btn-sm" id="btn-preview">미리보기 보기</button>
+      </div>
+      <div style="height:14px"></div>
+      <div class="stage" id="stage"><div class="paper-scaler" id="paper-scaler"><div class="paper" id="paper"></div></div></div>
+    </div>
+  </div>
+
+  <!-- ================= 기록 ================= -->
+  <div id="view-records" class="hide">
+    <div class="rec-bar">
+      <button class="btn-sm" id="btn-refresh">새로고침</button>
+      <span class="note" id="rec-status"></span>
+    </div>
+    <div id="records-area"></div>
+  </div>
+</div>
+
+<!-- ================= 연결 설정 ================= -->
+<div class="modal hide" id="modal">
+  <div class="panel">
+    <h3>공용 원장 연결</h3>
+    <label class="f"><i>웹앱 URL</i><input class="in" id="cfg-url" placeholder="https://script.google.com/macros/s/.../exec"></label>
+    <label class="f"><i>팀 코드</i><input class="in" id="cfg-code" placeholder="스크립트에 설정한 코드"></label>
+    <p class="note">비워 두면 이 브라우저에만 기록이 남습니다. 연결하면 팀 전원이 같은 원장을 쓰고 문서번호가 겹치지 않습니다.</p>
+    <div class="btn-row">
+      <button class="btn" id="cfg-save">연결</button>
+      <button class="btn" id="cfg-close">닫기</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const state = { kind:'quote', vat:'incl', qmode:'unit', rows:[] };
+/* qmode — 견적서 전용
+   unit  단가형 : 품목별 단가만 제시 (합계 없음)
+   total 총액형 : 수량 × 단가로 금액과 총계까지 제시 (용역·공급계약 견적) */
+let sealImg = '';
+let cfg = { url:'', code:'' };
+let online = false;
+let lastConnError = '';
+
+/* ---------- helpers ---------- */
+const num = v => { const n = parseFloat(String(v).replace(/[^0-9.-]/g,'')); return isNaN(n)?0:n; };
+const won = n => Math.round(n).toLocaleString('ko-KR');
+const todayStr = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const korDate = s => { if(!s) return ''; const [y,m,d]=s.split('-'); return y+'년 '+Number(m)+'월 '+Number(d)+'일'; };
+const esc = s => (s??'').toString().replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('on'); setTimeout(()=>t.classList.remove('on'),2600); }
+function blankRow(){ return {name:'',spec:'',price:'',ship:'',qty:'',memo:''}; }
+
+/* ---------- 로컬 저장소 (연결 전 대비) ---------- */
+const KEY='famnet:documents', CFG_KEY='famnet:config', SEAL_KEY='famnet:seal';
+let memoryStore=null, backend='memory';
+
+async function pickBackend(){
+  try{ if(window.storage && typeof window.storage.set==='function'){ await window.storage.set('famnet:probe','1',false); backend='app'; return; } }catch(e){}
+  try{ localStorage.setItem('famnet:probe','1'); localStorage.removeItem('famnet:probe'); backend='local'; return; }catch(e){}
+  backend='memory';
+}
+async function saveVal(key,val){
+  try{
+    if(backend==='app'){ await window.storage.set(key,val,false); return true; }
+    if(backend==='local'){ localStorage.setItem(key,val); return true; }
+  }catch(e){ try{ localStorage.setItem(key,val); backend='local'; return true; }catch(e2){} }
+  return false;
+}
+async function readVal(key){
+  try{
+    if(backend==='app'){ const r=await window.storage.get(key,false); return (r&&r.value)||''; }
+    if(backend==='local'){ return localStorage.getItem(key)||''; }
+  }catch(e){}
+  return '';
+}
+async function loadLocalDocs(){
+  const raw = await readVal(KEY);
+  try{ return raw? JSON.parse(raw):(memoryStore?JSON.parse(memoryStore):[]); }catch(e){ return []; }
+}
+async function saveLocalDocs(list){
+  const json=JSON.stringify(list); memoryStore=json; return await saveVal(KEY,json);
+}
+
+/* ---------- 서버 통신 ---------- */
+/* 이 파일이 Apps Script 웹앱으로 서빙되면 google.script.run을 쓸 수 있어
+   URL·팀 코드 입력 없이 곧바로 공용 원장에 연결된다. */
+const HOSTED = (typeof google !== 'undefined' && google.script && google.script.run);
+function gsRun(fn, arg){
+  return new Promise((resolve, reject)=>{
+    const runner = google.script.run
+      .withSuccessHandler(resolve)
+      .withFailureHandler(err=>reject(new Error((err && err.message) || '서버 오류')));
+    if(arg === undefined) runner[fn](); else runner[fn](arg);
+  });
+}
+async function api(action, extra){
+  if(HOSTED){
+    let data;
+    if(action==='ping')        data = await gsRun('uiPing');
+    else if(action==='issue')  data = await gsRun('uiIssue', extra.doc);
+    else if(action==='list')   data = await gsRun('uiList');
+    else if(action==='delete') data = await gsRun('uiDelete', extra.no);
+    else if(action==='memo')   data = await gsRun('uiMemo', {no:extra.no, note:extra.note});
+    else if(action==='contacts')      data = await gsRun('uiContacts');
+    else if(action==='contactSave')   data = await gsRun('uiContactSave', extra.contact);
+    else if(action==='contactDelete') data = await gsRun('uiContactDelete', extra.mgr);
+    else throw new Error('알 수 없는 요청입니다');
+    if(!data || !data.ok) throw new Error((data && data.error) || '서버 오류');
+    return data;
+  }
+
+  if(!cfg.url) throw new Error('연결 안 됨');
+  let res;
+  try{
+    res = await fetch(cfg.url, {
+      method:'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(Object.assign({action, code:cfg.code}, extra||{}))
+    });
+  }catch(e){
+    throw new Error('서버에 연결할 수 없습니다 (URL 확인 필요)');
+  }
+  if(!res.ok) throw new Error('서버 응답 오류 (HTTP '+res.status+')');
+  let data;
+  try{ data = await res.json(); }
+  catch(e){ throw new Error('서버가 예상과 다른 응답을 보냈습니다. 배포 설정을 확인해 주세요'); }
+  if(!data.ok) throw new Error(data.error||'서버 오류');
+  return data;
+}
+function setConn(status, text){
+  $('conn-dot').className = 'dot' + (status?' on':' off');
+  $('conn-text').textContent = text;
+}
+async function checkConn(){
+  if(!HOSTED && !cfg.url){ online=false; setConn(false,'이 브라우저에만 저장'); return; }
+  setConn(false,'연결 확인 중');
+  try{ await api('ping'); online=true; setConn(true,'공용 원장 연결됨'); }
+  catch(e){ online=false; setConn(false,'연결 실패 · 로컬 저장'); lastConnError = e.message; }
+}
+
+/* ---------- 품목 편집 (견적서/거래명세서) ---------- */
+const COLS = {
+  quote:       [['name','품명',''],['spec','규격',''],['price','단가','num'],['ship','배송비',''],['memo','비고','']],
+  quote_total: [['name','품명',''],['spec','규격',''],['price','단가','num'],['qty','수량','num'],['memo','비고','']],
+  invoice:     [['name','품명',''],['spec','규격',''],['price','단가','num'],['qty','수량','num'],['memo','비고','']],
+  order:       [['name','품명',''],['spec','규격',''],['qty','수량','num'],['memo','비고','']]
+};
+/* ---------- 열 너비 ----------
+   비율(%)로 관리한다. 편집표와 인쇄되는 문서가 같은 값을 쓰므로
+   화면에서 조정한 폭이 A4 출력에 그대로 반영된다.
+   합이 100이 되도록 정규화하며, 한 열을 늘리면 옆 열이 줄어든다. */
+const COLW_DEFAULT = {
+  quote:       { name:36, spec:18, price:14, ship:12, memo:20 },
+  quote_total: { name:30, spec:15, price:12, qty:8,  _amount:14, memo:21 },
+  invoice:     { name:30, spec:15, price:12, qty:8,  _amount:14, memo:21 },
+  order:       { name:36, spec:22, qty:12,  memo:30 }
+};
+const COLW_KEY = 'famnet:colw';
+const COLW_MIN = 5;              // 열 최소 비율(%)
+let colw = {};                   // 기본값과 다른 것만 담는다
+
+/* ---------- 열 표시 형식 ----------
+   num  숫자 : 오른쪽 정렬 + 천단위 콤마
+   text 텍스트 : 가운데 정렬, 입력값 그대로
+   표시 형식일 뿐이며 금액 계산은 언제나 숫자로 읽는다.
+   (단가를 텍스트로 두고 '별도협의'라고 써도 계산 로직은 그대로 동작) */
+const COLTYPE_KEY = 'famnet:coltype';
+const COLTYPE_DEFAULT = { name:'text', spec:'text', price:'num', ship:'text', qty:'num', memo:'text' };
+let coltype = {};                // 기본값과 다른 것만 담는다
+
+function colTypeOf(lk, key){
+  if(key === AMOUNT_KEY) return 'num';            // 계산 결과라 고정
+  const v = (coltype[lk]||{})[key];
+  return v || COLTYPE_DEFAULT[key] || 'text';
+}
+function toggleColType(lk, key){
+  if(key === AMOUNT_KEY) return;
+  const cur = colTypeOf(lk, key);
+  const next = cur === 'num' ? 'text' : 'num';
+  if(!coltype[lk]) coltype[lk] = {};
+  if(next === (COLTYPE_DEFAULT[key] || 'text')) delete coltype[lk][key];
+  else coltype[lk][key] = next;
+  saveVal(COLTYPE_KEY, JSON.stringify(coltype));
+}
+/* 문서에 찍을 값 — 숫자 열이면 콤마를 넣고, 숫자가 아니면 원문 그대로 둔다 */
+function fmtCell(lk, key, raw){
+  const v = (raw==null ? '' : String(raw)).trim();
+  if(!v) return '';
+  if(colTypeOf(lk, key) !== 'num') return v;
+  return /^-?[\d.,\s]+$/.test(v) ? num(v).toLocaleString('ko-KR') : v;
+}
+
+/* 해당 서식의 열 순서 (금액 열은 총액형·거래명세서에만) */
+function colList(lk){
+  const base = (COLS[lk]||[]).map(c=>c[0]);
+  if(lk==='invoice' || lk==='quote_total'){
+    const i = base.indexOf('memo');
+    const out = base.slice();
+    out.splice(i<0?out.length:i, 0, '_amount');   // 비고 앞에 금액
+    return out;
+  }
+  return base;
+}
+/* 합이 100이 되도록 정규화한 [{key, pct}] */
+function colWidths(lk){
+  const keys = colList(lk);
+  const src = Object.assign({}, COLW_DEFAULT[lk]||{}, colw[lk]||{});
+  const vals = keys.map(k=> (typeof src[k]==='number' && src[k]>0) ? src[k] : 10);
+  const sum = vals.reduce((a,b)=>a+b,0) || 1;
+  return keys.map((k,i)=>({ key:k, pct: vals[i]*100/sum }));
+}
+function setColWidths(lk, list){
+  if(!colw[lk]) colw[lk] = {};
+  list.forEach(c=>{ colw[lk][c.key] = Math.round(c.pct*100)/100; });
+  saveVal(COLW_KEY, JSON.stringify(colw));
+}
+function resetColWidths(lk){
+  delete colw[lk];
+  saveVal(COLW_KEY, JSON.stringify(colw));
+}
+/* 문서(A4)용 colgroup — 맨 앞 No 열은 고정 */
+function docColgroup(lk){
+  return '<colgroup><col style="width:42px">'
+    + colWidths(lk).map(c=>'<col style="width:'+c.pct.toFixed(2)+'%">').join('')
+    + '</colgroup>';
+}
+/* 열 구성·머리글 이름을 고를 때 쓰는 키.
+   견적서는 유형에 따라 열이 달라지므로 quote / quote_total 로 나뉜다. */
+function layoutKey(kind, qmode){
+  const k = kind || state.kind;
+  const q = qmode || state.qmode;
+  return (k === 'quote' && q === 'total') ? 'quote_total' : k;
+}
+const AMOUNT_W = '110px';
+
+/* ---------- 머리글 이름 커스터마이즈 ----------
+   문서 종류별로 열 이름을 바꿔 쓸 수 있다. 계산 로직은 열 키(name/price/qty)에
+   묶여 있으므로 이름만 바뀔 뿐 금액 계산은 그대로 동작한다.
+   직전에 쓴 이름은 그대로 남고, 발행 시 문서에 함께 저장되어
+   과거 문서를 다시 불러와도 당시 이름으로 출력된다. */
+const HDR_KEY = 'famnet:headers';
+let hdr = { quote:{}, quote_total:{}, invoice:{}, order:{} };   // 기본값과 다른 것만 담는다
+const AMOUNT_KEY = '_amount';                    // 거래명세서 '금액' 열
+
+function defaultHeader(kind, key){
+  if(key === AMOUNT_KEY) return '금액';
+  const col = (COLS[kind]||[]).find(c=>c[0]===key);
+  return col ? col[1] : '';
+}
+function headerName(kind, key){
+  const v = (hdr[kind]||{})[key];
+  return (v && v.trim()) ? v : defaultHeader(kind, key);
+}
+function setHeaderName(kind, key, value){
+  const v = (value||'').trim();
+  if(!hdr[kind]) hdr[kind] = {};
+  if(!v || v === defaultHeader(kind, key)) delete hdr[kind][key];
+  else hdr[kind][key] = v;
+  saveVal(HDR_KEY, JSON.stringify(hdr));
+}
+function resetHeaders(kind){
+  hdr[kind] = {};
+  saveVal(HDR_KEY, JSON.stringify(hdr));
+}
+/* 단가 열은 이름 뒤에 VAT 표기가 자동으로 붙는다 */
+/* VAT 표기는 표 밖 오른쪽 위에 따로 두므로 머리글에는 붙이지 않는다 */
+function priceHeader(kind){
+  return headerName(kind, 'price');
+}
+
+function renderEditor(){
+  const k = layoutKey();
+  const cols = COLS[k]; if(!cols) return;
+  const widths = colWidths(k);
+  const hasAmount = widths.some(c=>c.key===AMOUNT_KEY);
+
+  /* 열 폭은 colgroup이 정한다. 마지막 삭제 버튼 열만 고정. */
+  $('items-colgroup').innerHTML =
+    widths.map(c=>'<col style="width:'+c.pct.toFixed(2)+'%">').join('')
+    + '<col style="width:30px">';
+
+  const th = (key, i, isLast) => {
+    const custom = (hdr[k]||{})[key] ? ' custom' : '';
+    const right = (key===AMOUNT_KEY) ? ' style="text-align:right"' : '';
+    const grip = isLast ? '' : '<span class="col-grip" data-grip="'+i+'" title="드래그해서 열 너비를 조정합니다"></span>';
+    const t = colTypeOf(k, key);
+    /* 금액 열은 계산 결과라 형식을 바꿀 수 없다 */
+    const badge = (key===AMOUNT_KEY)
+      ? '<span class="type-badge fixed" title="계산 결과 — 숫자 고정">123</span>'
+      : '<span class="type-badge '+t+'" data-coltype="'+key+'" title="'
+        + (t==='num' ? '숫자 (오른쪽 정렬·콤마) — 눌러서 텍스트로' : '텍스트 (가운데 정렬) — 눌러서 숫자로')
+        + '">' + (t==='num' ? '123' : '가') + '</span>';
+    const label = '<span class="hdr-edit'+custom+'" contenteditable="true" spellcheck="false" data-hdr="'+key+'"'
+      + (key===AMOUNT_KEY ? '' : ' title="클릭해서 이름을 바꿀 수 있습니다"')
+      + '>'+esc(headerName(k,key))+'</span>';
+    return '<th'+right+'>'+badge+label+grip+'</th>';
+  };
+  $('items-head').innerHTML =
+    widths.map((c,i)=>th(c.key, i, i===widths.length-1)).join('')
+    + '<th></th>';
+
+  $('items-body').innerHTML = state.rows.map((r,i)=>{
+    /* data-label 은 좁은 화면에서 각 칸 위에 붙는 이름표로 쓰인다 */
+    const inputCell = c => '<td data-key="'+c[0]+'" data-label="'+esc(headerName(k, c[0]))+'"><input data-i="'+i+'" data-k="'+c[0]+'" class="'
+      + (colTypeOf(k, c[0])==='num' ? 'num' : 'mid')
+      + '" value="'+(r[c[0]]||'').toString().replace(/"/g,'&quot;')+'"></td>';
+    const cells = cols.map(inputCell).join('');
+    const v = num(r.price)*num(r.qty);
+    const amt = hasAmount ? '<td class="amt-cell" data-key="_amount" data-label="'+esc(headerName(k, AMOUNT_KEY))+'">'+(v?won(v):'-')+'</td>' : '';
+    /* 금액 열은 비고 앞에 온다 */
+    let body = cells;
+    if(hasAmount){
+      const mi = cols.findIndex(c=>c[0]==='memo');
+      if(mi>=0){
+        const parts = cols.map(inputCell);
+        parts.splice(mi, 0, amt);
+        body = parts.join('');
+      } else { body = cells + amt; }
+    }
+    return '<tr data-rownum="'+(i+1)+'">'+body+'<td class="del-cell"><button class="del" data-del="'+i+'">×</button></td></tr>';
+  }).join('');
+}
+
+/* ---------- 열 너비 드래그 조정 ---------- */
+(function(){
+  let dragging = null;
+  function startDrag(clientX, gripIdx){
+    const lk = layoutKey();
+    const table = $('items-head').closest('table');
+    dragging = { lk, i:gripIdx, x0:clientX, tableW:table.clientWidth, base:colWidths(lk) };
+    document.body.style.cursor='col-resize';
+    document.body.style.userSelect='none';
+  }
+  function moveDrag(clientX){
+    if(!dragging) return;
+    const { lk, i, x0, tableW, base } = dragging;
+    let d = (clientX - x0) / tableW * 100;
+    const a = base[i].pct, b = base[i+1].pct;
+    d = Math.max(COLW_MIN - a, Math.min(b - COLW_MIN, d));
+    const next = base.map(c=>({key:c.key, pct:c.pct}));
+    next[i].pct = a + d; next[i+1].pct = b - d;
+    if(!colw[lk]) colw[lk] = {};
+    next.forEach(c=>{ colw[lk][c.key] = c.pct; });
+    /* 드래그 중에는 화면만 갱신하고 저장은 놓을 때 한다 */
+    $('items-colgroup').innerHTML =
+      next.map(c=>'<col style="width:'+c.pct.toFixed(2)+'%">').join('') + '<col style="width:30px">';
+    renderPaper();
+  }
+  function endDrag(){
+    if(!dragging) return;
+    setColWidths(dragging.lk, colWidths(dragging.lk));
+    dragging = null;
+    document.body.style.cursor='';
+    document.body.style.userSelect='';
+  }
+  $('items-head').addEventListener('mousedown', e=>{
+    const g = e.target.dataset.grip; if(g===undefined) return;
+    e.preventDefault(); startDrag(e.clientX, Number(g));
+  });
+  window.addEventListener('mousemove', e=>{ if(dragging) moveDrag(e.clientX); });
+  window.addEventListener('mouseup', endDrag);
+  $('items-head').addEventListener('touchstart', e=>{
+    if(window.matchMedia('(max-width:640px)').matches) return;  // 카드형에서는 사용 안 함
+    const g = e.target.dataset.grip; if(g===undefined) return;
+    e.preventDefault(); startDrag(e.touches[0].clientX, Number(g));
+  }, {passive:false});
+  window.addEventListener('touchmove', e=>{ if(dragging){ e.preventDefault(); moveDrag(e.touches[0].clientX); } }, {passive:false});
+  window.addEventListener('touchend', endDrag);
+})();
+
+/* 머리글 편집: 입력 중에는 미리보기만 갱신하고, 포커스가 빠질 때 저장한다 */
+$('items-head').addEventListener('click', e=>{
+  const key = e.target.dataset.coltype; if(key===undefined) return;
+  toggleColType(layoutKey(), key);
+  renderEditor(); renderPaper();
+});
+$('items-head').addEventListener('input', e=>{
+  const key = e.target.dataset.hdr; if(key===undefined) return;
+  const lk = layoutKey();
+  if(!hdr[lk]) hdr[lk] = {};
+  const v = e.target.textContent.trim();
+  if(!v || v === defaultHeader(lk, key)) delete hdr[lk][key];
+  else hdr[lk][key] = v;
+  e.target.classList.toggle('custom', !!hdr[lk][key]);
+  renderPaper();
+});
+$('items-head').addEventListener('blur', e=>{
+  const key = e.target.dataset.hdr; if(key===undefined) return;
+  const v = e.target.textContent.trim();
+  setHeaderName(layoutKey(), key, v);
+  if(!v) e.target.textContent = defaultHeader(layoutKey(), key);
+  renderPaper();
+}, true);
+/* 엔터로 줄바꿈되지 않게 하고, 붙여넣기는 서식 없이 */
+$('items-head').addEventListener('keydown', e=>{
+  if(e.target.dataset.hdr!==undefined && e.key==='Enter'){ e.preventDefault(); e.target.blur(); }
+});
+$('items-head').addEventListener('paste', e=>{
+  if(e.target.dataset.hdr===undefined) return;
+  e.preventDefault();
+  const t=(e.clipboardData||window.clipboardData).getData('text').replace(/\s+/g,' ').trim();
+  document.execCommand('insertText', false, t);
+});
+$('items-body').addEventListener('input', e=>{
+  const t=e.target; if(!t.dataset.k) return;
+  state.rows[t.dataset.i][t.dataset.k]=t.value;
+  if(state.kind==='invoice' && (t.dataset.k==='price'||t.dataset.k==='qty')) refreshAmounts();
+  renderPaper();
+});
+function refreshAmounts(){
+  [...$('items-body').rows].forEach((tr,i)=>{
+    const cell=tr.cells[tr.cells.length-2];
+    const v=num(state.rows[i].price)*num(state.rows[i].qty);
+    cell.textContent = v?won(v):'-';
+  });
+}
+$('items-body').addEventListener('click', e=>{
+  const d=e.target.dataset.del; if(d===undefined) return;
+  state.rows.splice(Number(d),1);
+  if(!state.rows.length) state.rows.push(blankRow());
+  renderEditor(); renderPaper();
+});
+$('btn-addrow').onclick=()=>{ state.rows.push(blankRow()); renderEditor(); renderPaper(); };
+$('btn-reset-hdr').onclick=()=>{
+  const lk = layoutKey();
+  resetHeaders(lk); resetColWidths(lk);
+  delete coltype[lk]; saveVal(COLTYPE_KEY, JSON.stringify(coltype));
+  renderEditor(); renderPaper();
+  toast('열 설정을 기본값으로 되돌렸습니다');
+};
+
+/* ---------- 문서 종류 전환 ---------- */
+function applyKindVisibility(){
+  const isCert = state.kind==='cert';
+  const isOrder = state.kind==='order';
+  const isQuote = state.kind==='quote';
+  $('panel-items').classList.toggle('hide', isCert);
+  $('vat-block').classList.toggle('hide', isCert || isOrder);
+  $('qmode-block').classList.toggle('hide', !isQuote);
+  $('period-block').classList.toggle('hide', !(isQuote && state.qmode==='total'));
+  $('qmode-hint').textContent = state.qmode==='total'
+    ? '수량 × 단가로 금액과 총계까지 제시합니다'
+    : '품목별 단가만 제시합니다';
+  $('field-client').classList.toggle('hide', isCert);
+  $('field-client-label').textContent = isOrder ? '수신업체(수신처)' : '수신업체(수신자)';
+  $('panel-cert').classList.toggle('hide', !isCert);
+  $('panel-order').classList.toggle('hide', !isOrder);
+  $('supplier-contact-block').classList.toggle('hide', isCert);
+  $('field-cert-title').classList.toggle('hide', !isCert);
+  $('panel-memo').classList.toggle('hide', isCert);
+  if(!isCert && !state.rows.length) state.rows=[blankRow(),blankRow(),blankRow()];
+}
+$('seg-kind').addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.v === state.kind) return;
+  [...$('seg-kind').children].forEach(x=>x.classList.toggle('on',x===b));
+  state.kind=b.dataset.v; assignedNo='';
+  applyKindVisibility(); renderEditor(); renderPaper();
+});
+$('seg-qmode').addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  [...$('seg-qmode').children].forEach(x=>x.classList.toggle('on',x===b));
+  state.qmode=b.dataset.v; assignedNo='';
+  applyKindVisibility(); renderEditor(); renderPaper();
+});
+$('seg-vat').addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  [...$('seg-vat').children].forEach(x=>x.classList.toggle('on',x===b));
+  state.vat=b.dataset.v; renderPaper();
+});
+
+/* ---------- 부가세 처리 방식 ----------
+   incl   VAT 포함 : 입력 단가에 부가세가 포함되어 있음 (역산)
+   excl   VAT 별도 : 입력 단가는 공급가액, 10%를 더함
+   exempt 면세     : 부가세 과세 대상 아님 (농산물 등)
+   zero   영세율   : 과세 대상이나 세율 0% (수출 등)                     */
+const VAT_LABEL = { incl:'VAT포함', excl:'VAT별도', exempt:'면세', zero:'영세율' };
+const VAT_SHORT = { incl:'포함',    excl:'별도',    exempt:'면세', zero:'영세율' };
+function vatLabel(v){ return VAT_LABEL[v] || VAT_LABEL.incl; }
+
+/* ---------- 합계 ---------- */
+function totals(){
+  const sum = state.rows.reduce((a,r)=>a+num(r.price)*num(r.qty),0);
+  if(state.vat==='excl'){ const vat=Math.round(sum*0.1); return {supply:sum,vat,grand:sum+vat}; }
+  if(state.vat==='exempt' || state.vat==='zero'){ return {supply:sum,vat:0,grand:sum}; }
+  const supply=Math.round(sum/1.1); return {supply,vat:sum-supply,grand:sum};
+}
+
+/* ---------- 문서번호 ---------- */
+let assignedNo = '';
+const PREFIX = { quote:'Q-', invoice:'T-', cert:'C-', order:'B-' };
+function provisionalNo(){
+  const d=($('f-date').value||todayStr()).replace(/-/g,'');
+  return PREFIX[state.kind]+d;
+}
+
+/* ---------- 견적서/거래명세서 렌더 ---------- */
+function renderTablePaper(){
+  const isQ = state.kind==='quote';
+  /* 단가형 견적만 '단가만 나열' 형태다. 총액형 견적과 거래명세서는 금액·합계를 낸다. */
+  const unitOnly = isQ && state.qmode==='unit';
+  const lk = layoutKey();
+  const vatMode = state.vat;
+  const t = totals();
+  const priceLabel = priceHeader(lk);
+  const filled = state.rows.filter(r=>r.name||r.spec||r.price);
+  const pad = Math.max(0, 8-filled.length);
+  const H = key => esc(headerName(lk, key));
+
+  /* 열 제목은 화면에서 조정한 순서·너비를 그대로 따른다 */
+  const headCells = '<th>No</th>' + colWidths(lk).map(c=>
+      '<th>' + (c.key==='price' ? esc(priceLabel) : H(c.key)) + '</th>').join('');
+  const colCount = colWidths(lk).length + 1;
+
+  /* 각 열의 값과 정렬은 열 키로 결정한다 (열 순서·너비 변경에 그대로 따라간다) */
+  const cellFor = (r, key) => {
+    if(key === '_amount') return ['r', won(num(r.price)*num(r.qty))];
+    const isNum = colTypeOf(lk, key) === 'num';
+    return [isNum ? 'r' : 'c', esc(fmtCell(lk, key, r[key]))];
+  };
+  const bodyRows = filled.map((r,i)=>
+    '<tr><td class="c">'+(i+1)+'</td>'
+    + colWidths(lk).map(c=>{ const [cls,val]=cellFor(r,c.key); return '<td class="'+cls+'">'+val+'</td>'; }).join('')
+    + '</tr>'
+  ).join('')
+  + Array.from({length:pad}).map((_,k)=>'<tr class="empty"><td class="c">'+(filled.length+k+1)+'</td>'+'<td></td>'.repeat(colCount-1)+'</tr>').join('');
+
+  /* 부가세 처리에 따라 합계 구성이 달라진다
+     - VAT 포함  : 총계만
+     - VAT 별도  : 공급가액 + 부가세(10%) + 총계
+     - 면세      : 공급가액 + 부가세란에 '면세' + 총계
+     - 영세율    : 공급가액 + 부가세 0원 + 총계                        */
+  let vatRows = '';
+  if(vatMode === 'excl'){
+    vatRows = '<tr><th>공급가액 합계</th><td>'+won(t.supply)+'</td></tr>'
+            + '<tr><th>부가세액 (10%)</th><td>'+won(t.vat)+'</td></tr>';
+  } else if(vatMode === 'exempt'){
+    vatRows = '<tr><th>공급가액 합계</th><td>'+won(t.supply)+'</td></tr>'
+            + '<tr><th>부가세액</th><td>면세</td></tr>';
+  } else if(vatMode === 'zero'){
+    vatRows = '<tr><th>공급가액 합계</th><td>'+won(t.supply)+'</td></tr>'
+            + '<tr><th>부가세액 (영세율)</th><td>0</td></tr>';
+  }
+  const totalBlock = unitOnly ? '' :
+    '<div class="totals"><table>' + vatRows
+    + '<tr class="grand"><th>총 계</th><td>'+won(t.grand)+' 원</td></tr></table></div>';
+
+  const amountBox = unitOnly ? '' :
+    '<table class="box amountbox" style="margin-top:14px"><tr><th style="width:120px">합계금액<br>('+esc(vatLabel(vatMode))+')</th><td class="big">'+won(t.grand)+' 원</td></tr></table>';
+
+  /* 총액형 견적서에서만, 입력이 있을 때 기간 줄을 넣는다 */
+  const periodVal = isQ && state.qmode==='total' ? ($('f-period').value||'').trim() : '';
+  const periodBox = periodVal
+    ? '<table class="box" style="margin-bottom:18px"><tr><th style="width:150px">유효기간 · 과업기간</th><td style="text-align:left;padding-left:14px">'+esc(periodVal)+'</td></tr></table>'
+    : '';
+
+  $('paper').innerHTML =
+    '<h1 class="doc-title">'+(isQ?'견 적 서':'거래명세서')+'</h1>'
+  + '<div class="doc-no">'+(assignedNo || provisionalNo()+'-###')+'</div>'
+  + '<div class="head"><div>'
+  +   '<table class="box">'
+  +     '<tr><th style="width:110px">발행일자</th><td>'+korDate($('f-date').value)+'</td></tr>'
+  +     '<tr><th>수신자</th><td style="line-height:1.75;padding:10px 10px 12px">'+esc($('f-client').value)+'<br>귀하</td></tr>'
+  +   '</table>'+amountBox
+  + '</div><div class="sealwrap">'
+  +   '<div class="supplier-title">공 급 자</div>'
+  +   '<table class="box" style="table-layout:fixed">'
+  +     '<colgroup><col style="width:92px"><col><col style="width:78px"><col></colgroup>'
+  +     '<tr><th>사업자번호</th><td colspan="3">'+esc($('s-bizno').value)+'</td></tr>'
+  +     '<tr><th>업체명</th><td>'+esc($('s-name').value)+'</td><th>대 표</th><td>'+esc($('s-ceo').value)+' (인)</td></tr>'
+  +     '<tr><th>주소</th><td colspan="3">'+esc($('s-addr').value)+'</td></tr>'
+  +     '<tr><th>담당자</th><td>'+esc($('s-mgr').value)+'</td><th>전화번호</th><td>'+esc($('s-tel').value)+'</td></tr>'
+  +     '<tr><th>이메일</th><td colspan="3">'+esc($('s-mail').value)+'</td></tr>'
+  +   '</table>'
+  +   '<div class="seal-mark'+(sealImg?' img':'')+'">'+(sealImg?'<img src="'+sealImg+'" alt="인">':'팜넷<br>협동조합')+'</div>'
+  + '</div></div>'
+  + '<div class="vat-note">'+esc(vatLabel(vatMode))+'</div>'
+  + '<table class="grid">'+docColgroup(lk)+'<thead><tr>'+headCells+'</tr></thead><tbody>'+bodyRows+'</tbody></table>'
+  + totalBlock
+  + periodBox
+  + '<div><span class="memo-label">기타 사항</span></div>'
+  + '<div class="memo-body">'+esc($('f-memo').value)+'</div>';
+}
+
+/* ---------- 원산지증명서 렌더 ---------- */
+function renderCertPaper(){
+  const sealHtml = sealImg
+    ? '<span class="cert-seal img"><img src="'+sealImg+'" alt="인"></span>'
+    : '<span class="cert-seal">인</span>';
+  const kv = rows => '<table class="cert-kv">'+rows.map(r=>'<tr><td class="k">'+r[0]+'</td><td class="v">'+r[1]+'</td></tr>').join('')+'</table>';
+
+  $('paper').innerHTML =
+    '<div class="cert-no">'+(assignedNo || provisionalNo()+'-###')+'</div>'
+  + '<h1 class="cert-title">원산지 증명서</h1>'
+  + '<div style="height:26px"></div>'
+  + '<div class="cert-list">'
+  +   '<div class="cert-item"><b>■ 품 명</b> : '+esc($('c-item').value)+'</div>'
+  +   '<div class="cert-item"><b>■ 공급품목</b> : '+esc($('c-supply').value)+'</div>'
+  +   '<div class="cert-item"><b>■ 원산지</b> : '+esc($('c-origin').value)+'</div>'
+  +   '<div class="cert-block">'
+  +     '<div class="cert-item"><b>■ 공급처</b></div>'
+  +     kv([['상&nbsp;&nbsp;호', esc($('s-name').value)], ['사업자번호', esc($('s-bizno').value)], ['주&nbsp;&nbsp;소', esc($('s-addr').value)]])
+  +   '</div>'
+  +   '<div class="cert-block">'
+  +     '<div class="cert-item"><b>■ 납품처</b></div>'
+  +     kv([['상&nbsp;&nbsp;호', esc($('c-buyer-name').value)], ['사업자번호', esc($('c-buyer-bizno').value)], ['주&nbsp;&nbsp;소', esc($('c-buyer-addr').value)]])
+  +   '</div>'
+  +   '<div class="cert-item"><b>■ 금회 공급일</b> : '+korDate($('c-date').value)+'</div>'
+  +   '<div class="cert-item"><b>■ 금회 공급량</b> : '+esc($('c-qty').value)+'</div>'
+  + '</div>'
+  + '<div class="cert-sign">'
+  +   '<span class="cert-sign-text">'+esc($('s-name').value)+' '+esc($('c-title').value)+'</span>'
+  +   sealHtml
+  + '</div>';
+}
+
+/* ---------- 발주서 렌더 ---------- */
+function renderOrderPaper(){
+  const filled = state.rows.filter(r=>r.name||r.spec||r.qty);
+  const pad = Math.max(0, 10-filled.length);
+  const headCells = '<th>No</th>' + colWidths('order').map(c=>
+      '<th>'+esc(headerName('order', c.key))+'</th>').join('');
+  const colCount = colWidths('order').length + 1;
+  const cellFor = (r, key) => {
+    const isNum = colTypeOf('order', key) === 'num';
+    return [isNum ? 'r' : 'c', esc(fmtCell('order', key, r[key]))];
+  };
+  const bodyRows = filled.map((r,i)=>
+    '<tr><td class="c">'+(i+1)+'</td>'
+    + colWidths('order').map(c=>{ const [cls,val]=cellFor(r,c.key); return '<td class="'+cls+'">'+val+'</td>'; }).join('')
+    + '</tr>'
+  ).join('')
+  + Array.from({length:pad}).map((_,k)=>'<tr class="empty"><td class="c">'+(filled.length+k+1)+'</td>'+'<td></td>'.repeat(colCount-1)+'</tr>').join('');
+
+  $('paper').innerHTML =
+    '<h1 class="doc-title order-title">발 주 서</h1>'
+  + '<div class="doc-no">'+(assignedNo || provisionalNo()+'-###')+'</div>'
+  + '<div class="head"><div>'
+  +   '<table class="box">'
+  +     '<tr><th style="width:110px">발주일자</th><td>'+korDate($('f-date').value)+'</td></tr>'
+  +     '<tr><th>수신처</th><td style="line-height:1.75;padding:10px 10px 12px">'+esc($('f-client').value)+'<br>귀하</td></tr>'
+  +   '</table>'
+  + '</div><div class="sealwrap">'
+  +   '<div class="supplier-title">발 주 자</div>'
+  +   '<table class="box" style="table-layout:fixed">'
+  +     '<colgroup><col style="width:92px"><col><col style="width:78px"><col></colgroup>'
+  +     '<tr><th>사업자번호</th><td colspan="3">'+esc($('s-bizno').value)+'</td></tr>'
+  +     '<tr><th>업체명</th><td>'+esc($('s-name').value)+'</td><th>대 표</th><td>'+esc($('s-ceo').value)+' (인)</td></tr>'
+  +     '<tr><th>주소</th><td colspan="3">'+esc($('s-addr').value)+'</td></tr>'
+  +     '<tr><th>담당자</th><td>'+esc($('s-mgr').value)+'</td><th>전화번호</th><td>'+esc($('s-tel').value)+'</td></tr>'
+  +     '<tr><th>이메일</th><td colspan="3">'+esc($('s-mail').value)+'</td></tr>'
+  +   '</table>'
+  +   '<div class="seal-mark'+(sealImg?' img':'')+'">'+(sealImg?'<img src="'+sealImg+'" alt="인">':'팜넷<br>협동조합')+'</div>'
+  + '</div></div>'
+  + '<table class="grid">'+docColgroup('order')+'<thead><tr>'+headCells+'</tr></thead><tbody>'+bodyRows+'</tbody></table>'
+  + '<table class="box" style="margin-bottom:18px">'
+  +   '<tr><th style="width:140px">납기일</th><td>'+korDate($('o-duedate').value)+'</td></tr>'
+  +   '<tr><th>도착지 주소</th><td>'+esc($('o-addr').value)+'</td></tr>'
+  +   '<tr><th>도착지 담당자</th><td>'+esc($('o-mgr').value)+(($('o-mgr').value&&$('o-tel').value)?' ':'')+esc($('o-tel').value)+'</td></tr>'
+  +   '<tr><td colspan="2" style="text-align:center;padding:12px 10px">상기 제품을 발주하오니 납기를 준수하여 입고해 주시면 감사하겠습니다.</td></tr>'
+  + '</table>'
+  + '<div><span class="memo-label">기타 사항</span></div>'
+  + '<div class="memo-body">'+esc($('f-memo').value)+'</div>';
+}
+
+function renderPaper(){
+  $('paper').classList.toggle('cert-mode', state.kind==='cert');
+  if(state.kind==='cert') renderCertPaper();
+  else if(state.kind==='order') renderOrderPaper();
+  else renderTablePaper();
+  fitPaper();
+}
+
+/* 미리보기(A4 794px)를 좁은 화면에서 폭에 맞춰 축소한다 */
+function fitPaper(){
+  const stage = $('stage'), scaler = $('paper-scaler'), paper = $('paper');
+  if(!stage || !scaler || !paper) return;
+  const avail = stage.getBoundingClientRect().width;
+  if(avail <= 0) return;              // 접혀 있으면 계산하지 않는다
+  const scale = Math.min(1, avail / 794);
+  scaler.style.transform = scale === 1 ? 'none' : 'scale('+scale+')';
+  // 축소된 만큼 실제 차지하는 높이를 줄여 아래 여백이 뜨지 않게 한다
+  scaler.style.height = scale === 1 ? 'auto' : (paper.offsetHeight * scale) + 'px';
+}
+window.addEventListener('resize', fitPaper);
+
+['f-date','f-client','f-issuer','f-memo','f-period','s-bizno','s-name','s-ceo','s-addr','s-mgr','s-tel','s-mail',
+ 'c-item','c-supply','c-origin','c-buyer-name','c-buyer-bizno','c-buyer-addr','c-date','c-qty','c-title',
+ 'o-duedate','o-addr','o-mgr','o-tel']
+  .forEach(id=>{ const el=$(id); if(el) el.addEventListener('input', ()=>{ assignedNo=''; renderPaper(); }); });
+
+/* ---------- 담당자 세트 ----------
+   담당자·전화번호·이메일을 한 묶음으로 저장해 두고, 목록에서 고르면 세 칸이 함께 채워진다.
+   열 설정과 달리 이건 회사 기준 정보라 접속해도 계속 남는다. */
+const CONTACT_KEY = 'famnet:contacts';
+let contacts = [];               // [{mgr, tel, mail}]
+
+function renderContactPick(selectMgr){
+  const sel = $('contact-pick');
+  const cur = selectMgr !== undefined ? selectMgr : sel.value;
+  sel.innerHTML = '<option value="">담당자를 선택하세요</option>'
+    + contacts.map(c=>'<option value="'+esc(c.mgr)+'">'+esc(c.mgr)+'</option>').join('');
+  sel.value = contacts.some(c=>c.mgr===cur) ? cur : '';
+}
+$('contact-pick').addEventListener('change', e=>{
+  const c = contacts.find(x=>x.mgr===e.target.value);
+  if(!c) return;
+  $('s-mgr').value = c.mgr; $('s-tel').value = c.tel||''; $('s-mail').value = c.mail||'';
+  renderPaper();
+});
+/* 연결돼 있으면 공용 원장의 '담당자' 시트를, 아니면 이 브라우저를 쓴다 */
+async function loadContacts(){
+  if(online){
+    try{ const r = await api('contacts'); contacts = r.contacts||[]; return; }catch(e){}
+  }
+  const raw = await readVal(CONTACT_KEY);
+  try{ contacts = raw ? JSON.parse(raw) : []; }catch(e){ contacts = []; }
+}
+$('btn-contact-save').onclick = async ()=>{
+  const mgr = $('s-mgr').value.trim();
+  if(!mgr){ toast('담당자 이름을 먼저 입력해 주세요'); return; }
+  const entry = { mgr, tel:$('s-tel').value.trim(), mail:$('s-mail').value.trim() };
+  const existed = contacts.some(c=>c.mgr===mgr);
+  const btn = $('btn-contact-save');
+  const label = btn.textContent;
+  btn.disabled = true; btn.textContent = '저장 중…';
+  $('btn-contact-del').disabled = true;
+  try{
+    if(online){
+      await api('contactSave', {contact:entry});
+      await loadContacts();
+    }else{
+      const i = contacts.findIndex(c=>c.mgr===mgr);
+      if(i>=0) contacts[i] = entry; else contacts.push(entry);
+      contacts.sort((a,b)=>a.mgr.localeCompare(b.mgr,'ko'));
+      await saveVal(CONTACT_KEY, JSON.stringify(contacts));
+    }
+    renderContactPick(mgr);
+    toast((existed ? mgr+' 정보를 갱신했습니다' : mgr+' 담당자를 저장했습니다')
+      + (online ? '' : ' (이 브라우저에만)'));
+  }catch(err){
+    toast('저장 실패 · '+err.message);
+  }finally{
+    btn.disabled = false; btn.textContent = label;
+    $('btn-contact-del').disabled = false;
+  }
+};
+$('btn-contact-del').onclick = async ()=>{
+  const mgr = $('contact-pick').value;
+  if(!mgr){ toast('삭제할 담당자를 목록에서 선택해 주세요'); return; }
+  if(!confirm(mgr+' 담당자를 목록에서 삭제할까요?')) return;
+  const btn = $('btn-contact-del');
+  const label = btn.textContent;
+  btn.disabled = true; btn.textContent = '삭제 중…';
+  $('btn-contact-save').disabled = true;
+  try{
+    if(online){ await api('contactDelete', {mgr}); await loadContacts(); }
+    else{
+      contacts = contacts.filter(c=>c.mgr!==mgr);
+      await saveVal(CONTACT_KEY, JSON.stringify(contacts));
+    }
+    renderContactPick('');
+    toast('삭제했습니다');
+  }catch(err){
+    toast('삭제 실패 · '+err.message);
+  }finally{
+    btn.disabled = false; btn.textContent = label;
+    $('btn-contact-save').disabled = false;
+  }
+};
+
+/* ---------- 도장 ---------- */
+function sealCleared(){
+  $('seal-status').innerHTML = '적용된 도장이 있습니다. <button class="btn-sm" id="btn-seal-clear">기본 마크로 되돌리기</button>';
+  $('btn-seal-clear').onclick = async ()=>{
+    sealImg=''; $('s-seal').value='';
+    $('seal-status').textContent='기본 원형 마크가 표시됩니다.';
+    await saveVal(SEAL_KEY,''); renderPaper();
+  };
+}
+$('s-seal').addEventListener('change', e=>{
+  const file=e.target.files&&e.target.files[0]; if(!file) return;
+  const fr=new FileReader();
+  fr.onload=async()=>{ sealImg=fr.result; sealCleared(); await saveVal(SEAL_KEY,sealImg); renderPaper(); };
+  fr.readAsDataURL(file);
+});
+
+/* ---------- 발행 ---------- */
+function snapshot(){
+  const t=totals();
+  const doc = {
+    kind:state.kind, vat:state.vat, date:$('f-date').value,
+    client:$('f-client').value, issuer:$('f-issuer').value,
+    supplier:{bizno:$('s-bizno').value,name:$('s-name').value,ceo:$('s-ceo').value,addr:$('s-addr').value,mgr:$('s-mgr').value,tel:$('s-tel').value,mail:$('s-mail').value},
+    memo:$('f-memo').value,
+    rows: state.kind==='cert' ? [] : JSON.parse(JSON.stringify(state.rows)),
+    qmode: state.kind==='quote' ? state.qmode : null,
+    period: (state.kind==='quote' && state.qmode==='total') ? $('f-period').value : '',
+    headers: state.kind==='cert' ? null : JSON.parse(JSON.stringify(hdr[layoutKey()]||{})),
+    colw: state.kind==='cert' ? null : JSON.parse(JSON.stringify(colWidths(layoutKey()))),
+    coltype: state.kind==='cert' ? null : JSON.parse(JSON.stringify(coltype[layoutKey()]||{})),
+    grand: (state.kind==='invoice' || (state.kind==='quote' && state.qmode==='total')) ? t.grand : null,
+    issuedAt:new Date().toISOString()
+  };
+  if(state.kind==='cert'){
+    doc.cert = {
+      item:$('c-item').value, supply:$('c-supply').value, origin:$('c-origin').value,
+      buyer:{name:$('c-buyer-name').value, bizno:$('c-buyer-bizno').value, addr:$('c-buyer-addr').value},
+      supplyDate:$('c-date').value, supplyQty:$('c-qty').value, title:$('c-title').value
+    };
+  }
+  if(state.kind==='order'){
+    doc.order = { duedate:$('o-duedate').value, addr:$('o-addr').value, mgr:$('o-mgr').value, tel:$('o-tel').value };
+  }
+  return doc;
+}
+function validIssue(){
+  if(state.kind==='cert') return !!$('c-item').value;
+  return state.rows.some(r=>r.name);
+}
+$('btn-issue').onclick = async ()=>{
+  if(!validIssue()){ toast(state.kind==='cert' ? '품명을 입력해 주세요' : '품명을 한 건 이상 입력해 주세요'); return; }
+  const btn=$('btn-issue'); btn.disabled=true; btn.textContent='발행 중…';
+  const doc = snapshot();
+  try{
+    if(online){
+      const r = await api('issue',{doc});
+      doc.no = r.no; assignedNo = r.no;
+      renderPaper();
+      toast('발행 완료 · '+r.no);
+    }else{
+      const list = await loadLocalDocs();
+      const prefix = provisionalNo();
+      const last = list.filter(d=>String(d.no).indexOf(prefix+'-')===0)
+                       .reduce((m,d)=>Math.max(m, parseInt(String(d.no).slice(prefix.length+1),10)||0), 0);
+      doc.no = prefix+'-'+String(last+1).padStart(3,'0');
+      doc.id = Date.now();
+      list.unshift(doc);
+      const ok = await saveLocalDocs(list);
+      assignedNo = doc.no; renderPaper();
+      toast(ok ? '발행 완료 · '+doc.no+' (이 브라우저에만 기록)' : '발행 완료 · '+doc.no+' (이번 세션에만 유지)');
+    }
+    setTimeout(()=>window.print(), 350);
+  }catch(err){
+    toast('발행 실패 · '+err.message);
+  }finally{
+    btn.disabled=false; btn.textContent='발행하고 PDF로 인쇄';
+  }
+};
+/* 좁은 화면에서는 미리보기를 접어 두고 필요할 때 편다 */
+let previewOpen = true;
+function isNarrow(){ return window.matchMedia('(max-width:1023px)').matches; }
+function applyPreviewMode(){
+  const narrow = isNarrow();
+  document.body.classList.toggle('preview-collapsed', narrow && !previewOpen);
+  $('btn-preview').textContent = previewOpen ? '미리보기 접기 ▲' : '미리보기 보기 ▼';
+  if(previewOpen) requestAnimationFrame(fitPaper);
+}
+$('btn-preview').onclick = ()=>{
+  previewOpen = !previewOpen;
+  applyPreviewMode();
+  if(previewOpen) $('stage').scrollIntoView({behavior:'smooth', block:'start'});
+};
+let resizeTimer = null;
+window.addEventListener('resize', ()=>{
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(()=>{
+    if(!isNarrow()) previewOpen = true;   // 넓은 화면에서는 항상 펼친다
+    applyPreviewMode();
+    fitPaper();
+  }, 120);
+});
+
+$('btn-print').onclick=()=>window.print();
+$('btn-reset').onclick=()=>{
+  $('f-client').value=''; $('f-memo').value=''; $('f-period').value=''; $('f-date').value=todayStr();
+  ['c-item','c-supply','c-origin','c-buyer-name','c-buyer-bizno','c-buyer-addr','c-date','c-qty','o-duedate','o-addr','o-mgr','o-tel']
+    .forEach(id=>{ const el=$(id); if(el) el.value=''; });
+  assignedNo=''; state.rows=[blankRow(),blankRow(),blankRow()];
+  /* 열 이름·너비는 그 문서에만 적용된 설정이므로 함께 초기화한다 */
+  hdr = { quote:{}, quote_total:{}, invoice:{}, order:{} };
+  colw = {}; coltype = {};
+  saveVal(HDR_KEY, JSON.stringify(hdr));
+  saveVal(COLW_KEY, JSON.stringify(colw));
+  saveVal(COLTYPE_KEY, JSON.stringify(coltype));
+  renderEditor(); renderPaper(); toast('새 문서를 시작했습니다');
+};
+
+/* ---------- 기록 ---------- */
+let pollTimer=null;
+const memoOpen = new Set();   // 펼쳐 둔 문서번호
+const memoDraft = {};         // 저장 전 입력 중인 메모
+const cssEsc = s => (window.CSS && CSS.escape) ? CSS.escape(s) : String(s).replace(/["\\]/g,'\\$&');
+async function fetchDocs(){
+  if(online){ const r=await api('list'); return r.docs||[]; }
+  return await loadLocalDocs();
+}
+const KIND_LABEL = { quote:'견적서', invoice:'거래명세서', cert:'원산지증명서', order:'발주서' };
+const KIND_PILL = { quote:'q', invoice:'t', cert:'c', order:'b' };
+async function renderRecords(){
+  const area=$('records-area');
+  let list=[];
+  try{ list=await fetchDocs(); }
+  catch(e){ area.innerHTML='<div class="empty-state">원장을 불러오지 못했습니다. 연결 상태를 확인해 주세요.</div>'; return; }
+  $('rec-status').textContent = (online?'공용 원장':'이 브라우저')+' · '+list.length+'건 · '+new Date().toLocaleTimeString('ko-KR')+' 기준';
+  if(!list.length){ area.innerHTML='<div class="empty-state">아직 발행한 문서가 없습니다. 문서를 작성하고 발행을 눌러 보세요.</div>'; return; }
+
+  const block=(k)=>{
+    const g=list.filter(d=>d.kind===k); if(!g.length) return '';
+    return '<h3 style="margin:22px 0 8px;font-size:14px">'+KIND_LABEL[k]+' <span style="color:#5a6472;font-weight:700">'+g.length+'건</span></h3>'
+    + '<table class="rec"><thead><tr><th style="width:150px">문서번호</th><th style="width:100px">발행일자</th><th style="width:86px">발행자</th><th style="width:120px">'+(k==='cert'?'납품처':k==='order'?'수신처':'수신자')+'</th><th>품목</th><th style="width:120px;text-align:right">총계</th><th style="width:78px">VAT</th><th style="width:150px"></th></tr></thead><tbody>'
+    + g.map(d=>{
+        let counterparty, item;
+        if(k==='cert'){
+          counterparty = (d.cert && d.cert.buyer && d.cert.buyer.name) || '-';
+          item = (d.cert && d.cert.item) || '-';
+        } else {
+          counterparty = esc(d.client)||'-';
+          const named=(d.rows||[]).filter(r=>r.name);
+          item = named.length? esc(named[0].name)+(named.length>1?' 외 '+(named.length-1)+'건':'') : '-';
+        }
+        const open = memoOpen.has(d.no);
+        const saved = d.note || '';
+        const draft = (memoDraft[d.no] !== undefined) ? memoDraft[d.no] : saved;
+        return '<tr class="rec-row'+(open?' open':'')+'" data-row="'+esc(d.no)+'">'
+        + '<td><span class="pill '+KIND_PILL[k]+'">'+esc(d.no)+'</span></td>'
+        + '<td>'+esc(d.date)+'</td>'
+        + '<td class="ellip">'+(esc(d.issuer)||'-')+'</td>'
+        + '<td class="ellip">'+counterparty+'</td>'
+        + '<td class="ellip">'+item
+              +(k==='quote' && d.qmode==='total' ? ' <span class="type-tag">총액형</span>':'')
+              +(saved?' <span class="memo-dot" title="메모 있음">메모</span>':'')+'</td>'
+        + '<td style="text-align:right;font-weight:700">'+(d.grand!=null?won(d.grand)+' 원':'—')+'</td>'
+        + '<td>'+((k==='cert'||k==='order') ? '—' : (VAT_SHORT[d.vat]||'포함'))+'</td>'
+        + '<td><button class="btn-sm" data-load="'+esc(d.no)+'">불러오기</button> <button class="btn-sm" data-remove="'+esc(d.no)+'">삭제</button></td>'
+        + '</tr>'
+        + '<tr class="memo-tr'+(open?'':' hide')+'" data-memo-for="'+esc(d.no)+'"><td colspan="8">'
+        +   '<div class="memo-box">'
+        +     '<textarea class="in memo-text" rows="3" data-memo-input="'+esc(d.no)+'" placeholder="이 문서에 대한 메모를 남겨 두세요. (예: 담당자 구두 확인, 단가 재협의 예정)">'+esc(draft)+'</textarea>'
+        +     '<div class="memo-actions">'
+        +       '<button class="btn-sm memo-save" data-memo-save="'+esc(d.no)+'">메모 저장</button>'
+        +       '<span class="memo-hint" data-memo-hint="'+esc(d.no)+'"></span>'
+        +     '</div>'
+        +   '</div>'
+        + '</td></tr>';
+      }).join('')
+    + '</tbody></table>';
+  };
+  area.innerHTML = block('quote')+block('invoice')+block('cert')+block('order');
+  area._list = list;
+}
+$('btn-refresh').onclick=()=>renderRecords();
+
+/* 입력 중인 메모는 자동 갱신에도 지워지지 않도록 임시 보관한다 */
+$('records-area').addEventListener('input', e=>{
+  const no = e.target.dataset.memoInput;
+  if(no !== undefined) memoDraft[no] = e.target.value;
+});
+
+$('records-area').addEventListener('click', async e=>{
+  /* 1) 메모 저장 */
+  const saveNo = e.target.dataset.memoSave;
+  if(saveNo !== undefined){
+    const ta = $('records-area').querySelector('[data-memo-input="'+cssEsc(saveNo)+'"]');
+    const hint = $('records-area').querySelector('[data-memo-hint="'+cssEsc(saveNo)+'"]');
+    const note = ta ? ta.value : '';
+    e.target.disabled = true; e.target.textContent = '저장 중…';
+    try{
+      if(online){ await api('memo',{no:saveNo, note}); }
+      else{
+        const list = await loadLocalDocs();
+        const t = list.find(x=>x.no===saveNo); if(t) t.note = note;
+        await saveLocalDocs(list);
+      }
+      delete memoDraft[saveNo];
+      const cur = ($('records-area')._list||[]).find(x=>x.no===saveNo);
+      if(cur) cur.note = note;
+      if(hint){ hint.textContent = '저장되었습니다'; setTimeout(()=>{ hint.textContent=''; }, 2200); }
+      toast('메모를 저장했습니다 · '+saveNo);
+    }catch(err){
+      toast('메모 저장 실패 · '+err.message);
+    }finally{
+      e.target.disabled = false; e.target.textContent = '메모 저장';
+    }
+    return;
+  }
+
+  /* 2) 메모 영역 안 클릭은 펼침 토글에서 제외 */
+  if(e.target.closest('.memo-tr')) return;
+
+  /* 3) 행 클릭 → 메모 펼치기/접기 (버튼 제외) */
+  if(!e.target.dataset.load && !e.target.dataset.remove){
+    const row = e.target.closest('.rec-row');
+    if(row){
+      const rowNo = row.dataset.row;
+      const tr = $('records-area').querySelector('[data-memo-for="'+cssEsc(rowNo)+'"]');
+      const willOpen = memoOpen.has(rowNo) ? (memoOpen.delete(rowNo), false) : (memoOpen.add(rowNo), true);
+      row.classList.toggle('open', willOpen);
+      if(tr){
+        tr.classList.toggle('hide', !willOpen);
+        if(willOpen){ const ta=tr.querySelector('textarea'); if(ta) ta.focus(); }
+      }
+    }
+    return;
+  }
+
+  const no = e.target.dataset.load || e.target.dataset.remove;
+  if(!no) return;
+  const list = $('records-area')._list || [];
+  if(e.target.dataset.remove){
+    if(!confirm(no+' 기록을 삭제할까요?')) return;
+    try{
+      if(online) await api('delete',{no});
+      else await saveLocalDocs(list.filter(d=>d.no!==no));
+      memoOpen.delete(no); delete memoDraft[no];
+      toast('기록을 삭제했습니다'); renderRecords();
+    }catch(err){ toast('삭제 실패 · '+err.message); }
+    return;
+  }
+  const d=list.find(x=>x.no===no); if(!d) return;
+  state.kind=d.kind; state.vat=d.vat||'incl'; state.rows=(d.rows&&d.rows.length)?d.rows:[blankRow()];
+  state.qmode = (d.kind==='quote') ? (d.qmode||'unit') : state.qmode;
+  $('f-period').value = d.period||'';
+  [...$('seg-qmode').children].forEach(b=>b.classList.toggle('on',b.dataset.v===state.qmode));
+  /* 발행 당시 머리글 이름을 그대로 되살린다 */
+  if(d.kind!=='cert'){
+    const lk0 = layoutKey(d.kind, d.qmode);
+    hdr[lk0] = d.headers ? JSON.parse(JSON.stringify(d.headers)) : {};
+    saveVal(HDR_KEY, JSON.stringify(hdr));
+    if(Array.isArray(d.colw) && d.colw.length){
+      colw[lk0] = {};
+      d.colw.forEach(c=>{ colw[lk0][c.key] = c.pct; });
+    } else { delete colw[lk0]; }
+    saveVal(COLW_KEY, JSON.stringify(colw));
+    coltype[lk0] = d.coltype ? JSON.parse(JSON.stringify(d.coltype)) : {};
+    saveVal(COLTYPE_KEY, JSON.stringify(coltype));
+  }
+  [...$('seg-kind').children].forEach(b=>b.classList.toggle('on',b.dataset.v===d.kind));
+  [...$('seg-vat').children].forEach(b=>b.classList.toggle('on',b.dataset.v===state.vat));
+  $('f-date').value=d.date; $('f-client').value=d.client||''; $('f-issuer').value=d.issuer||''; $('f-memo').value=d.memo||'';
+  if(d.supplier) Object.entries({'s-bizno':'bizno','s-name':'name','s-ceo':'ceo','s-addr':'addr','s-mgr':'mgr','s-tel':'tel','s-mail':'mail'})
+    .forEach(([el,k])=>{ if(d.supplier[k]!=null) $(el).value=d.supplier[k]; });
+  if(d.kind==='cert' && d.cert){
+    $('c-item').value=d.cert.item||''; $('c-supply').value=d.cert.supply||''; $('c-origin').value=d.cert.origin||'';
+    $('c-buyer-name').value=(d.cert.buyer&&d.cert.buyer.name)||''; $('c-buyer-bizno').value=(d.cert.buyer&&d.cert.buyer.bizno)||'';
+    $('c-buyer-addr').value=(d.cert.buyer&&d.cert.buyer.addr)||''; $('c-date').value=d.cert.supplyDate||'';
+    $('c-qty').value=d.cert.supplyQty||''; $('c-title').value=d.cert.title||'이사장';
+  }
+  if(d.kind==='order' && d.order){
+    $('o-duedate').value=d.order.duedate||''; $('o-addr').value=d.order.addr||''; $('o-mgr').value=d.order.mgr||''; $('o-tel').value=d.order.tel||'';
+  }
+  assignedNo = d.no;
+  applyKindVisibility(); renderEditor(); renderPaper(); showTab('issue'); toast(no+' 불러왔습니다');
+});
+
+/* ---------- 탭 ---------- */
+function showTab(which){
+  const issue = which==='issue';
+  $('view-issue').classList.toggle('hide',!issue);
+  $('view-records').classList.toggle('hide',issue);
+  $('tab-issue').classList.toggle('on',issue);
+  $('tab-records').classList.toggle('on',!issue);
+  clearInterval(pollTimer);
+  if(!issue){ renderRecords(); pollTimer=setInterval(()=>{ if(!memoOpen.size) renderRecords(); }, 30000); }
+  else { requestAnimationFrame(fitPaper); }
+}
+$('tab-issue').onclick=()=>showTab('issue');
+$('tab-records').onclick=()=>showTab('records');
+
+/* ---------- 연결 설정 ---------- */
+$('conn').onclick=()=>{
+  if(HOSTED){ toast('공용 원장에 자동으로 연결되어 있습니다'); return; }
+  $('cfg-url').value=cfg.url; $('cfg-code').value=cfg.code; $('modal').classList.remove('hide');
+};
+$('cfg-close').onclick=()=>$('modal').classList.add('hide');
+$('cfg-save').onclick=async()=>{
+  cfg.url=$('cfg-url').value.trim(); cfg.code=$('cfg-code').value.trim();
+  await saveVal(CFG_KEY, JSON.stringify(cfg));
+  $('modal').classList.add('hide');
+  await checkConn();
+  toast(online?'공용 원장에 연결되었습니다':'연결하지 못했습니다 · '+lastConnError);
+};
+
+/* ---------- 시작 ---------- */
+$('f-date').value = todayStr();
+state.rows=[blankRow(),blankRow(),blankRow()];
+$('c-title').value='이사장';
+applyKindVisibility();
+renderEditor(); renderPaper();
+if(isNarrow()) previewOpen = false;
+applyPreviewMode();
+
+pickBackend().then(async()=>{
+  const savedCfg = await readVal(CFG_KEY);
+  if(savedCfg){ try{ cfg=JSON.parse(savedCfg); }catch(e){} }
+  /* 열 이름·너비는 그 문서에만 적용되는 설정이라 접속할 때마다 기본값에서 시작한다.
+     (과거 문서를 불러오면 발행 당시 값이 복원된다) */
+  hdr = { quote:{}, quote_total:{}, invoice:{}, order:{} };
+  colw = {}; coltype = {};
+  saveVal(HDR_KEY, JSON.stringify(hdr));
+  saveVal(COLW_KEY, JSON.stringify(colw));
+  saveVal(COLTYPE_KEY, JSON.stringify(coltype));
+  const savedSeal = await readVal(SEAL_KEY);
+  if(savedSeal){ sealImg=savedSeal; sealCleared(); renderPaper(); }
+  $('storage-note').textContent = (HOSTED || cfg.url)
+    ? '문서번호는 공용 원장에서 발급됩니다.'
+    : '상단 연결 버튼에서 공용 원장을 연결하면 팀 전원이 같은 기록을 씁니다.';
+  await checkConn();
+  await loadContacts();
+  renderContactPick('');
+});
+</script>

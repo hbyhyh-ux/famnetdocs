@@ -1,0 +1,9 @@
+{
+  "name": "famnet-docs",
+  "version": "1.0.0",
+  "private": true,
+  "description": "팜넷 문서발행 시스템 — 견적서·거래명세서·발주서·원산지증명서",
+  "scripts": {
+    "build": "node build/build.js"
+  }
+}
