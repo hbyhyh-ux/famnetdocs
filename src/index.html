@@ -275,11 +275,13 @@
   .contract-party-lines div{min-height:22px;}
   .contract-closing{padding:14px 18px !important;line-height:1.75;text-align:justify;}
   .contract-attachments{margin-top:12px;line-height:1.65;white-space:pre-wrap;}
-  .contract-date{text-align:center;font-size:15px;margin-top:18px;}
-  .contract-signs{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:8px;}
-  .contract-sign{position:relative;min-height:86px;padding:8px 72px 8px 8px;line-height:1.75;}
-  .contract-sign .seal-img{position:absolute;right:2px;top:3px;width:72px;height:72px;object-fit:contain;}
-  .contract-sign .seal-fallback{position:absolute;right:15px;top:17px;color:var(--seal);font-weight:700;}
+  .contract-date{text-align:center;font-size:15px;margin-top:24px;}
+  .contract-signs{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:34px;padding:0 16px 10px;}
+  .contract-sign{min-height:108px;text-align:center;line-height:1.65;}
+  .contract-sign-company{font-size:16px;font-weight:700;}
+  .contract-sign-rep{font-size:16px;font-weight:700;margin-top:20px;}
+  .contract-seal-anchor{position:relative;display:inline-flex;align-items:center;justify-content:center;min-width:38px;min-height:28px;margin-left:5px;font-size:16px;}
+  .contract-sign .seal-img{position:absolute;left:50%;top:50%;width:72px;height:72px;object-fit:contain;transform:translate(-50%,-50%);z-index:1;}
   .contract-guide{font-size:11.5px;color:var(--ink-soft);margin-top:8px;}
 
   /* ---- 발행 기록 ---- */
@@ -1420,11 +1422,11 @@ function partyLines(p, includeTel){
     +(includeTel?'<div>전화번호 : '+esc(p.tel)+'</div>':'')+'</div>';
 }
 function contractSeal(p){
-  if(!p.isFamnet) return '<span>(인)</span>';
-  return sealImg ? '<img class="seal-img" src="'+sealImg+'" alt="팜넷 사용인감">' : '<span class="seal-fallback">(인)</span>';
+  return p.isFamnet && sealImg ? '<img class="seal-img" src="'+sealImg+'" alt="팜넷 사용인감">' : '';
 }
 function contractSign(label,p){
-  return '<div class="contract-sign"><b>“'+label+'” '+esc(p.name)+'</b><br>대표 '+esc(p.ceo)+' &nbsp; (인)'+contractSeal(p)+'</div>';
+  return '<div class="contract-sign"><div class="contract-sign-company">“'+label+'” '+esc(p.name)+'</div>'
+    +'<div class="contract-sign-rep">대표 '+esc(p.ceo)+' <span class="contract-seal-anchor">(인)'+contractSeal(p)+'</span></div></div>';
 }
 function cleanPurchaseAttachments(value){
   return String(value||'').split(/\r?\n/)
@@ -1479,8 +1481,8 @@ function contractPage(copy){
     +'<tr><th>계약상대자 “을”</th><td>'+partyLines(b,!isService)+'</td></tr>'
     +contractRows+'<tr><td colspan="3" class="contract-closing"><div>'+body+'</div>'
     +'<div class="contract-attachments"><b>붙임서류</b><br>'+esc(isService?$('ct-attachments').value:cleanPurchaseAttachments($('ct-attachments').value))+'</div>'
-    +'<div class="contract-date">'+korDate($('f-date').value)+'</div></td></tr></table>'
-    +'<div class="contract-signs">'+contractSign('갑',a)+contractSign('을',b)+'</div></section>';
+    +'<div class="contract-date">'+korDate($('f-date').value)+'</div>'
+    +'<div class="contract-signs">'+contractSign('갑',a)+contractSign('을',b)+'</div></td></tr></table></section>';
 }
 function renderContractPaper(){
   $('paper').innerHTML=contractPage('갑')+contractPage('을');
