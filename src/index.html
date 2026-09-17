@@ -112,7 +112,14 @@
   .two{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
   .two.wide{grid-template-columns:1.7fr 1fr;}
   .three{display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:10px;}
-  .payment-slider{width:100%;accent-color:var(--accent);margin:2px 0 12px;}
+  .contract-amount-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:end;}
+  .contract-amount-row .vat-row{margin-bottom:12px;min-width:245px;}
+  .party-section{background:var(--nest);border-radius:var(--r-lg);padding:14px;margin-top:12px;}
+  .party-section-title{font-size:12.5px;font-weight:700;color:var(--ink);margin:0 0 11px;}
+  .party-section .vat-row{margin-bottom:0;}
+  .payment-control{background:var(--nest);border:1px solid var(--line-soft);border-radius:var(--r-lg);padding:15px 16px 3px;}
+  .payment-slider{width:100%;accent-color:var(--accent);margin:4px 0 14px;}
+  .payment-values{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
   .percent-input{position:relative;}
   .percent-input input{padding-right:34px;}
   .percent-input::after{content:'%';position:absolute;right:13px;bottom:12px;color:var(--ink-soft);font-weight:700;}
@@ -260,9 +267,9 @@
   .contract-table th{background:#f5f5f5;text-align:center;font-weight:700;}
   .contract-table td{line-height:1.55;}
   .contract-party-lines div{min-height:22px;}
-  .contract-body{margin-top:16px;line-height:1.75;text-align:justify;}
-  .contract-attachments{margin-top:14px;line-height:1.65;white-space:pre-wrap;}
-  .contract-date{text-align:center;font-size:15px;margin:22px 0 18px;}
+  .contract-closing{padding:14px 18px !important;line-height:1.75;text-align:justify;}
+  .contract-attachments{margin-top:12px;line-height:1.65;white-space:pre-wrap;}
+  .contract-date{text-align:center;font-size:15px;margin-top:18px;}
   .contract-signs{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:8px;}
   .contract-sign{position:relative;min-height:86px;padding:8px 72px 8px 8px;line-height:1.75;}
   .contract-sign .seal-img{position:absolute;right:2px;top:3px;width:72px;height:72px;object-fit:contain;}
@@ -388,7 +395,8 @@
     .seg.seg-inline{width:100%;}
     .seg.seg-inline button{padding:12px 8px;}
     .seg.seg-vat4{grid-template-columns:1fr 1fr;width:100%;}
-    .two, .two.wide,.three{grid-template-columns:1fr;}
+    .two, .two.wide,.three,.contract-amount-row,.payment-values{grid-template-columns:1fr;}
+    .contract-amount-row .vat-row{min-width:0;}
     .cert-grid{grid-template-columns:1fr;}
     .cert-grid label.f[style*="span 2"],
     .cert-grid label.f[style*="span 3"]{grid-column:1 / -1 !important;}
@@ -618,33 +626,40 @@
       <div class="panel hide" id="panel-contract">
         <h3>계약 기본정보</h3>
         <label class="f"><i>계약명</i><input class="in" id="ct-subject" placeholder="계약명을 입력하세요"></label>
-        <label class="f"><i>계약금액(원)</i><input class="in" id="ct-amount" inputmode="numeric" placeholder="예: 1000000"></label>
-        <div class="vat-row">
-          <span class="vat-label">부가세 처리</span>
-          <div class="seg seg-inline" id="seg-contract-vat">
-            <button data-v="incl" class="on">VAT 포함</button>
-            <button data-v="excl">VAT 별도</button>
+        <div class="contract-amount-row">
+          <label class="f"><i>계약금액(원)</i><input class="in money-input" id="ct-amount" inputmode="numeric" placeholder="예: 1,000,000"></label>
+          <div class="vat-row">
+            <span class="vat-label">부가세 처리</span>
+            <div class="seg seg-inline" id="seg-contract-vat">
+              <button data-v="incl" class="on">VAT 포함</button>
+              <button data-v="excl">VAT 별도</button>
+            </div>
           </div>
         </div>
       </div>
 
       <div class="panel hide" id="panel-counterparty">
         <h3>계약 당사자 정보</h3>
-        <div class="vat-row">
-          <span class="vat-label">팜넷의 계약 역할</span>
-          <div class="seg seg-inline" id="seg-contract-role">
-            <button data-v="a" class="on">갑(발주처)</button>
-            <button data-v="b">을(계약상대자)</button>
+        <div class="party-section">
+          <div class="party-section-title">팜넷 역할</div>
+          <div class="vat-row">
+            <div class="seg seg-inline" id="seg-contract-role">
+              <button data-v="a" class="on">갑(발주처)</button>
+              <button data-v="b">을(계약상대자)</button>
+            </div>
           </div>
+          <p class="contract-guide">선택한 위치에 팜넷 회사정보와 공용 도장이 자동으로 들어갑니다.</p>
         </div>
-        <p class="contract-guide">선택한 위치에 팜넷 회사정보와 공용 도장이 자동으로 들어갑니다.</p>
-        <div class="two wide">
-          <label class="f"><i>상호명</i><input class="in" id="cp-name"></label>
-          <label class="f"><i>대표자</i><input class="in" id="cp-ceo"></label>
+        <div class="party-section">
+          <div class="party-section-title">계약상대자</div>
+          <div class="two wide">
+            <label class="f"><i>상호명</i><input class="in" id="cp-name"></label>
+            <label class="f"><i>대표자</i><input class="in" id="cp-ceo"></label>
+          </div>
+          <label class="f"><i>사업자등록번호</i><input class="in" id="cp-bizno"></label>
+          <label class="f"><i>주소</i><input class="in" id="cp-addr"></label>
+          <label class="f"><i>전화번호</i><input class="in" id="cp-tel"></label>
         </div>
-        <label class="f"><i>사업자등록번호</i><input class="in" id="cp-bizno"></label>
-        <label class="f"><i>주소</i><input class="in" id="cp-addr"></label>
-        <label class="f"><i>전화번호</i><input class="in" id="cp-tel"></label>
       </div>
 
       <div class="panel hide" id="panel-service-contract">
@@ -653,16 +668,18 @@
           <label class="f"><i>계약 시작일</i><input type="date" class="in" id="svc-start"></label>
           <label class="f"><i>계약 종료일</i><input type="date" class="in" id="svc-end"></label>
         </div>
-        <label class="f"><i>선금·잔금 비율 조정 (5% 단위)</i><input type="range" class="payment-slider" id="svc-payment-range" min="0" max="100" step="5" value="50"></label>
-        <div class="two">
-          <label class="f percent-input"><i>선금</i><input type="number" class="in" id="svc-advance" min="0" max="100" step="5" value="50"></label>
-          <label class="f percent-input"><i>잔금</i><input type="number" class="in" id="svc-balance" min="0" max="100" step="5" value="50"></label>
+        <div class="payment-control">
+          <label class="f"><i>선금·잔금 비율 조정 (5% 단위)</i><input type="range" class="payment-slider" id="svc-payment-range" min="0" max="100" step="5" value="50"></label>
+          <div class="payment-values">
+            <label class="f percent-input"><i>선금</i><input type="number" class="in" id="svc-advance" min="0" max="100" step="5" value="50"></label>
+            <label class="f percent-input"><i>잔금</i><input type="number" class="in" id="svc-balance" min="0" max="100" step="5" value="50"></label>
+          </div>
         </div>
       </div>
 
       <div class="panel hide" id="panel-purchase-contract">
         <h3>물품구매 계약조건</h3>
-        <label class="f"><i>총제조부기금액(원)</i><input class="in" id="pur-total" inputmode="numeric" placeholder="비우면 계약금액과 동일"></label>
+        <label class="f"><i>총제조부기금액(원)</i><input class="in money-input" id="pur-total" inputmode="numeric" placeholder="비우면 계약금액과 동일"></label>
         <div class="three">
           <label class="f"><i>계약보증 방식</i><select class="in" id="pur-guarantee-mode"><option value="rate">계약금액의 비율</option><option value="pledge">지급각서로 대체</option><option value="exempt">면제</option><option value="direct">직접 입력</option></select></label>
           <label class="f"><i>계약보증금</i><input class="in" id="pur-guarantee" value="10%"></label>
@@ -1154,7 +1171,7 @@ $('seg-kind').addEventListener('click', e=>{
   if(b.dataset.v === state.kind) return;
   [...$('seg-kind').children].forEach(x=>x.classList.toggle('on',x===b));
   state.kind=b.dataset.v; assignedNo='';
-  if(state.kind==='purchase' && (!$('ct-attachments').value || $('ct-attachments').value==='1. 견적서 1부.')) $('ct-attachments').value='1. 산출내역서 1부.\n2. 물품구매계약 일반 및 특수조건 1부.';
+  if(state.kind==='purchase' && (!$('ct-attachments').value || $('ct-attachments').value==='1. 견적서 1부.')) $('ct-attachments').value='1. 산출내역서 1부.';
   if(state.kind==='service' && $('ct-attachments').value.indexOf('산출내역서')===0) $('ct-attachments').value='1. 견적서 1부.';
   applyKindVisibility(); renderEditor(); renderPaper();
 });
@@ -1397,6 +1414,11 @@ function contractSeal(p){
 function contractSign(label,p){
   return '<div class="contract-sign"><b>“'+label+'” '+esc(p.name)+'</b><br>대표 '+esc(p.ceo)+' &nbsp; (인)'+contractSeal(p)+'</div>';
 }
+function cleanPurchaseAttachments(value){
+  return String(value||'').split(/\r?\n/)
+    .filter(line=>line.indexOf('물품구매계약 일반 및 특수조건')<0)
+    .join('\n').trim();
+}
 function contractPage(copy){
   const a=contractParty('a'), b=contractParty('b');
   const isService=state.kind==='service';
@@ -1443,9 +1465,10 @@ function contractPage(copy){
     +'<div class="contract-top"><h1 class="contract-title">'+title+'</h1><div class="contract-top-meta"><div>문서번호 : '+esc(no)+'</div><div>공고번호 : </div></div></div>'
     +'<table class="contract-table"><tr><th rowspan="2" style="width:45px">계<br>약<br>자</th><th style="width:120px">발주처 “갑”</th><td>'+partyLines(a,!isService)+'</td></tr>'
     +'<tr><th>계약상대자 “을”</th><td>'+partyLines(b,!isService)+'</td></tr>'
-    +contractRows+'</table>'
-    +'<div class="contract-body">'+body+'</div><div class="contract-attachments"><b>붙임서류</b><br>'+esc($('ct-attachments').value)+'</div>'
-    +'<div class="contract-date">'+korDate($('f-date').value)+'</div><div class="contract-signs">'+contractSign('갑',a)+contractSign('을',b)+'</div></section>';
+    +contractRows+'<tr><td colspan="3" class="contract-closing"><div>'+body+'</div>'
+    +'<div class="contract-attachments"><b>붙임서류</b><br>'+esc(isService?$('ct-attachments').value:cleanPurchaseAttachments($('ct-attachments').value))+'</div>'
+    +'<div class="contract-date">'+korDate($('f-date').value)+'</div></td></tr></table>'
+    +'<div class="contract-signs">'+contractSign('갑',a)+contractSign('을',b)+'</div></section>';
 }
 function renderContractPaper(){
   $('paper').innerHTML=contractPage('갑')+contractPage('을');
@@ -1477,10 +1500,16 @@ window.addEventListener('resize', fitPaper);
 
 ['f-date','f-client','f-issuer','f-memo','f-period','s-bizno','s-name','s-ceo','s-addr','s-mgr','s-tel','s-mail',
  'c-item','c-supply','c-origin','c-buyer-name','c-buyer-bizno','c-buyer-addr','c-date','c-qty','c-title',
- 'o-duedate','o-addr','o-mgr','o-tel','ct-amount','ct-subject','cp-name','cp-ceo','cp-bizno','cp-addr','cp-tel',
- 'svc-start','svc-end','pur-total','pur-guarantee','pur-delay','pur-date','pur-place','ct-etc','ct-attachments']
+ 'o-duedate','o-addr','o-mgr','o-tel','ct-subject','cp-name','cp-ceo','cp-bizno','cp-addr','cp-tel',
+ 'svc-start','svc-end','pur-guarantee','pur-delay','pur-date','pur-place','ct-etc','ct-attachments']
   .forEach(id=>{ const el=$(id); if(el) el.addEventListener('input', ()=>{ assignedNo=''; renderPaper(); }); });
 $('pur-guarantee-mode').addEventListener('change', ()=>{ assignedNo=''; renderPaper(); });
+function formatMoneyInput(el){
+  const digits=String(el.value||'').replace(/[^0-9]/g,'').replace(/^0+(?=\d)/,'');
+  el.value=digits ? Number(digits).toLocaleString('ko-KR') : '';
+  assignedNo=''; renderPaper();
+}
+['ct-amount','pur-total'].forEach(id=>$(id).addEventListener('input',e=>formatMoneyInput(e.target)));
 function syncPayment(source,value){
   const v=Math.max(0,Math.min(100,num(value)));
   if(source==='advance'){
@@ -1629,7 +1658,7 @@ function snapshot(){
       role:state.contractRole, vat:state.contractVat, noticeNo:'',
       subject:$('ct-subject').value, amount:num($('ct-amount').value),
       counterparty:{name:$('cp-name').value,ceo:$('cp-ceo').value,bizno:$('cp-bizno').value,addr:$('cp-addr').value,tel:$('cp-tel').value},
-      etc:$('ct-etc').value, attachments:$('ct-attachments').value
+      etc:$('ct-etc').value, attachments:state.kind==='purchase'?cleanPurchaseAttachments($('ct-attachments').value):$('ct-attachments').value
     };
     if(state.kind==='service') doc.contract.service={start:$('svc-start').value,end:$('svc-end').value,advance:num($('svc-advance').value),balance:num($('svc-balance').value)};
     else doc.contract.purchase={total:num($('pur-total').value),guaranteeMode:$('pur-guarantee-mode').value,guarantee:$('pur-guarantee').value,delay:$('pur-delay').value,deliveryDate:$('pur-date').value,deliveryPlace:$('pur-place').value};
@@ -1703,7 +1732,7 @@ $('btn-reset').onclick=()=>{
    'ct-amount','ct-subject','cp-name','cp-ceo','cp-bizno','cp-addr','cp-tel','svc-start','svc-end','pur-total','pur-date','pur-place','ct-etc']
     .forEach(id=>{ const el=$(id); if(el) el.value=''; });
   $('svc-payment-range').value='50'; $('svc-advance').value='50'; $('svc-balance').value='50'; $('pur-guarantee-mode').value='rate'; $('pur-guarantee').value='10%'; $('pur-delay').value='0.1%';
-  $('ct-attachments').value=state.kind==='purchase'?'1. 산출내역서 1부.\n2. 물품구매계약 일반 및 특수조건 1부.':'1. 견적서 1부.';
+  $('ct-attachments').value=state.kind==='purchase'?'1. 산출내역서 1부.':'1. 견적서 1부.';
   assignedNo=''; state.rows=[blankRow(),blankRow(),blankRow()];
   /* 열 이름·너비는 그 문서에만 적용된 설정이므로 함께 초기화한다 */
   hdr = { quote:{}, quote_total:{}, invoice:{}, order:{} };
@@ -1985,14 +2014,14 @@ $('cfg-share').onclick=async()=>{
     state.contractRole=c.role||'a'; state.contractVat=c.vat==='excl'?'excl':'incl';
     [...$('seg-contract-role').children].forEach(b=>b.classList.toggle('on',b.dataset.v===state.contractRole));
     [...$('seg-contract-vat').children].forEach(b=>b.classList.toggle('on',b.dataset.v===state.contractVat));
-    $('ct-subject').value=c.subject||''; $('ct-amount').value=c.amount||'';
+    $('ct-subject').value=c.subject||''; $('ct-amount').value=c.amount?won(c.amount):'';
     const cp=c.counterparty||{}; $('cp-name').value=cp.name||''; $('cp-ceo').value=cp.ceo||''; $('cp-bizno').value=cp.bizno||''; $('cp-addr').value=cp.addr||''; $('cp-tel').value=cp.tel||'';
-    $('ct-etc').value=c.etc||''; $('ct-attachments').value=c.attachments||'';
+    $('ct-etc').value=c.etc||''; $('ct-attachments').value=d.kind==='purchase'?cleanPurchaseAttachments(c.attachments||''):c.attachments||'';
     if(d.kind==='service'){
       const s=c.service||{}; const advance=s.advance==null?50:num(s.advance); const balance=s.balance==null?100-advance:num(s.balance);
       $('svc-start').value=s.start||''; $('svc-end').value=s.end||''; $('svc-advance').value=advance; $('svc-balance').value=balance; $('svc-payment-range').value=advance;
     }else{
-      const p=c.purchase||{}; $('pur-total').value=p.total||''; $('pur-guarantee-mode').value=p.guaranteeMode||'rate'; $('pur-guarantee').value=p.guarantee||'10%'; $('pur-delay').value=p.delay||'0.1%'; $('pur-date').value=p.deliveryDate||''; $('pur-place').value=p.deliveryPlace||'';
+      const p=c.purchase||{}; $('pur-total').value=p.total?won(p.total):''; $('pur-guarantee-mode').value=p.guaranteeMode||'rate'; $('pur-guarantee').value=p.guarantee||'10%'; $('pur-delay').value=p.delay||'0.1%'; $('pur-date').value=p.deliveryDate||''; $('pur-place').value=p.deliveryPlace||'';
     }
   }
 };
