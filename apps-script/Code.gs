@@ -128,6 +128,8 @@ function issueDoc(doc) {
     var summary;
     if (doc.kind === 'cert') {
       summary = (doc.cert && doc.cert.item) ? doc.cert.item : '-';
+    } else if (doc.kind === 'service' || doc.kind === 'purchase') {
+      summary = (doc.contract && doc.contract.subject) ? doc.contract.subject : '-';
     } else {
       var named = (doc.rows || []).filter(function (r) { return r.name; });
       summary = named.length
@@ -145,7 +147,8 @@ function issueDoc(doc) {
       doc.issuer || '',
       summary,
       doc.grand == null ? '' : doc.grand,
-      (doc.kind === 'cert' || doc.kind === 'order') ? '' : vatLabel(doc.vat),
+      (doc.kind === 'cert' || doc.kind === 'order') ? '' :
+        ((doc.kind === 'service' || doc.kind === 'purchase') ? vatLabel((doc.contract && doc.contract.vat) || 'incl') : vatLabel(doc.vat)),
       JSON.stringify(doc),
       ''
     ]);
@@ -160,12 +163,16 @@ function prefixFor(kind) {
   if (kind === 'quote') return 'Q-';
   if (kind === 'invoice') return 'T-';
   if (kind === 'order') return 'B-';
+  if (kind === 'service') return 'S-';
+  if (kind === 'purchase') return 'P-';
   return 'C-';
 }
 function kindLabel(kind) {
   if (kind === 'quote') return '견적서';
   if (kind === 'invoice') return '거래명세서';
   if (kind === 'order') return '발주서';
+  if (kind === 'service') return '용역계약서';
+  if (kind === 'purchase') return '물품구매계약서';
   return '원산지증명서';
 }
 function vatLabel(v) {
