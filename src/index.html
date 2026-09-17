@@ -114,9 +114,15 @@
   .three{display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:10px;}
   .contract-amount-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:end;}
   .contract-amount-row .vat-row{margin-bottom:12px;min-width:245px;}
-  .party-section{background:var(--nest);border-radius:var(--r-lg);padding:14px;margin-top:12px;}
-  .party-section-title{font-size:12.5px;font-weight:700;color:var(--ink);margin:0 0 11px;}
-  .party-section .vat-row{margin-bottom:0;}
+  .contract-role-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:2px 0 13px;}
+  .contract-role-label{font-size:12.5px;font-weight:700;color:var(--ink);white-space:nowrap;}
+  .contract-role-row .seg{margin-bottom:0;}
+  .contract-role-note{font-size:11.5px;color:var(--ink-soft);margin:0 0 15px;line-height:1.5;}
+  .contract-divider{border:0;border-top:1px solid var(--line-soft);margin:0 0 17px;}
+  .counterparty-head{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:13px;font-weight:700;color:var(--ink);}
+  .counterparty-role{padding:3px 9px;border-radius:999px;background:var(--accent-wash);color:var(--accent);font-size:11px;}
+  .contract-party-fields .in{background:#fff;border-color:#d9dde3;}
+  .contract-party-fields .in:hover{background:#fff;border-color:#c1c7cf;}
   .payment-control{background:var(--nest);border:1px solid var(--line-soft);border-radius:var(--r-lg);padding:15px 16px 3px;}
   .payment-slider{width:100%;accent-color:var(--accent);margin:4px 0 14px;}
   .payment-values{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
@@ -397,6 +403,7 @@
     .seg.seg-vat4{grid-template-columns:1fr 1fr;width:100%;}
     .two, .two.wide,.three,.contract-amount-row,.payment-values{grid-template-columns:1fr;}
     .contract-amount-row .vat-row{min-width:0;}
+    .contract-role-row{align-items:flex-start;flex-direction:column;gap:8px;}
     .cert-grid{grid-template-columns:1fr;}
     .cert-grid label.f[style*="span 2"],
     .cert-grid label.f[style*="span 3"]{grid-column:1 / -1 !important;}
@@ -640,25 +647,26 @@
 
       <div class="panel hide" id="panel-counterparty">
         <h3>계약 당사자 정보</h3>
-        <div class="party-section">
-          <div class="party-section-title">팜넷 역할</div>
-          <div class="vat-row">
-            <div class="seg seg-inline" id="seg-contract-role">
-              <button data-v="a" class="on">갑(발주처)</button>
-              <button data-v="b">을(계약상대자)</button>
-            </div>
+        <div class="contract-role-row">
+          <span class="contract-role-label">팜넷 역할</span>
+          <div class="seg seg-inline" id="seg-contract-role">
+            <button data-v="a" class="on">갑(발주처)</button>
+            <button data-v="b">을(계약상대자)</button>
           </div>
-          <p class="contract-guide">선택한 위치에 팜넷 회사정보와 공용 도장이 자동으로 들어갑니다.</p>
         </div>
-        <div class="party-section">
-          <div class="party-section-title">계약상대자</div>
+        <p class="contract-role-note">선택한 위치에 팜넷 회사정보와 공용 도장이 자동으로 들어갑니다.</p>
+        <hr class="contract-divider">
+        <div class="contract-party-fields">
+          <div class="counterparty-head">상대방 정보 <span class="counterparty-role" id="counterparty-role">을(계약상대자)</span></div>
           <div class="two wide">
             <label class="f"><i>상호명</i><input class="in" id="cp-name"></label>
             <label class="f"><i>대표자</i><input class="in" id="cp-ceo"></label>
           </div>
-          <label class="f"><i>사업자등록번호</i><input class="in" id="cp-bizno"></label>
+          <div class="two">
+            <label class="f"><i>사업자등록번호</i><input class="in" id="cp-bizno"></label>
+            <label class="f"><i>전화번호</i><input class="in" id="cp-tel"></label>
+          </div>
           <label class="f"><i>주소</i><input class="in" id="cp-addr"></label>
-          <label class="f"><i>전화번호</i><input class="in" id="cp-tel"></label>
         </div>
       </div>
 
@@ -1139,6 +1147,9 @@ $('btn-reset-hdr').onclick=()=>{
 };
 
 /* ---------- 문서 종류 전환 ---------- */
+function updateContractRoleLabel(){
+  $('counterparty-role').textContent=state.contractRole==='a'?'을(계약상대자)':'갑(발주처)';
+}
 function applyKindVisibility(){
   const isCert = state.kind==='cert';
   const isOrder = state.kind==='order';
@@ -1164,6 +1175,7 @@ function applyKindVisibility(){
   $('supplier-contact-block').classList.toggle('hide', isCert || isContract);
   $('field-cert-title').classList.toggle('hide', !isCert);
   $('panel-memo').classList.toggle('hide', isCert || isContract);
+  updateContractRoleLabel();
   if(!isCert && !state.rows.length) state.rows=[blankRow(),blankRow(),blankRow()];
 }
 $('seg-kind').addEventListener('click', e=>{
@@ -1934,6 +1946,7 @@ $('seg-contract-role').addEventListener('click', e=>{
   const b=e.target.closest('button'); if(!b) return;
   state.contractRole=b.dataset.v;
   [...$('seg-contract-role').children].forEach(x=>x.classList.toggle('on',x===b));
+  updateContractRoleLabel();
   renderPaper();
 });
 $('seg-contract-vat').addEventListener('click', e=>{
@@ -2013,6 +2026,7 @@ $('cfg-share').onclick=async()=>{
     const c=d.contract;
     state.contractRole=c.role||'a'; state.contractVat=c.vat==='excl'?'excl':'incl';
     [...$('seg-contract-role').children].forEach(b=>b.classList.toggle('on',b.dataset.v===state.contractRole));
+    updateContractRoleLabel();
     [...$('seg-contract-vat').children].forEach(b=>b.classList.toggle('on',b.dataset.v===state.contractVat));
     $('ct-subject').value=c.subject||''; $('ct-amount').value=c.amount?won(c.amount):'';
     const cp=c.counterparty||{}; $('cp-name').value=cp.name||''; $('cp-ceo').value=cp.ceo||''; $('cp-bizno').value=cp.bizno||''; $('cp-addr').value=cp.addr||''; $('cp-tel').value=cp.tel||'';
