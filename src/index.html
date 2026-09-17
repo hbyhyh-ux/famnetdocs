@@ -109,6 +109,7 @@
   .in::placeholder{color:#b0b5bd;font-weight:400;}
   .in:hover{background:#eceef1;}
   .in:focus{outline:none;border-color:var(--accent);background:var(--card);box-shadow:0 0 0 3px rgba(0,168,120,.18);}
+  .in:disabled{opacity:.55;cursor:not-allowed;background:#e9eaec;color:var(--ink-soft);}
   .two{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
   .two.wide{grid-template-columns:1.7fr 1fr;}
   .three{display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:10px;}
@@ -689,10 +690,16 @@
 
       <div class="panel hide" id="panel-purchase-contract">
         <h3>물품구매 계약조건</h3>
-        <label class="f"><i>총제조부기금액(원)</i><input class="in money-input" id="pur-total" inputmode="numeric" placeholder="비우면 계약금액과 동일"></label>
+        <div class="payment-control" style="margin-bottom:12px">
+          <label class="f"><i>지급조건 · 선금·잔금 비율 조정 (5% 단위)</i><input type="range" class="payment-slider" id="pur-payment-range" min="0" max="100" step="5" value="50"></label>
+          <div class="payment-values">
+            <label class="f percent-input"><i>선금</i><input type="number" class="in" id="pur-advance" min="0" max="100" step="5" value="50"></label>
+            <label class="f percent-input"><i>잔금</i><input type="number" class="in" id="pur-balance" min="0" max="100" step="5" value="50"></label>
+          </div>
+        </div>
         <div class="three">
           <label class="f"><i>계약보증 방식</i><select class="in" id="pur-guarantee-mode"><option value="rate">계약금액의 비율</option><option value="pledge">지급각서로 대체</option><option value="exempt">면제</option><option value="direct">직접 입력</option></select></label>
-          <label class="f"><i>계약보증금</i><input class="in" id="pur-guarantee" value="10%"></label>
+          <label class="f"><i>계약보증금율</i><input class="in" id="pur-guarantee" value="10%" placeholder="예: 10%"></label>
           <label class="f"><i>지체상금률(1일)</i><input class="in" id="pur-delay" value="0.1%"></label>
         </div>
         <div class="two">
@@ -1457,12 +1464,16 @@ function contractPage(copy){
   }else{
     const gm=$('pur-guarantee-mode').value;
     const guarantee=gm==='pledge'?'지급각서로 대체':gm==='exempt'?'면제':esc($('pur-guarantee').value);
-    const total=num($('pur-total').value)||amount;
+    const advance=Math.max(0,Math.min(100,num($('pur-advance').value)));
+    const balance=Math.max(0,Math.min(100,num($('pur-balance').value)));
+    const payments=[];
+    if(advance>0) payments.push('선금 '+advance+'%');
+    if(balance>0) payments.push('잔금 '+balance+'%');
     rows=[
       ['계약명',esc($('ct-subject').value)],
       ['계약금액',amountText+' / '+vat],
-      ['총제조부기금액','금'+koreanMoney(total)+'정 (￦'+won(total)+')'],
-      ['계약보증금',guarantee],
+      ['지급조건',payments.join(' / ')],
+      ['계약보증금율',guarantee],
       ['지체상금률',esc($('pur-delay').value)+' / 일'],
       ['납품일자',korDate($('pur-date').value)],
       ['납품장소',esc($('pur-place').value)],
@@ -1517,25 +1528,42 @@ window.addEventListener('resize', fitPaper);
  'o-duedate','o-addr','o-mgr','o-tel','ct-subject','cp-name','cp-ceo','cp-bizno','cp-addr','cp-tel',
  'svc-start','svc-end','pur-guarantee','pur-delay','pur-date','pur-place','ct-etc','ct-attachments']
   .forEach(id=>{ const el=$(id); if(el) el.addEventListener('input', ()=>{ assignedNo=''; renderPaper(); }); });
-$('pur-guarantee-mode').addEventListener('change', ()=>{ assignedNo=''; renderPaper(); });
+function updatePurchaseGuaranteeField(){
+  const mode=$('pur-guarantee-mode').value, field=$('pur-guarantee');
+  field.disabled=mode==='pledge'||mode==='exempt';
+  if(mode==='direct'){
+    if(field.value==='10%') field.value='';
+    field.placeholder='직접 입력하세요';
+  }else if(mode==='rate'){
+    field.placeholder='예: 10%';
+    if(!field.value) field.value='10%';
+  }else{
+    field.placeholder='';
+  }
+  assignedNo=''; renderPaper();
+}
+$('pur-guarantee-mode').addEventListener('change', updatePurchaseGuaranteeField);
 function formatMoneyInput(el){
   const digits=String(el.value||'').replace(/[^0-9]/g,'').replace(/^0+(?=\d)/,'');
   el.value=digits ? Number(digits).toLocaleString('ko-KR') : '';
   assignedNo=''; renderPaper();
 }
-['ct-amount','pur-total'].forEach(id=>$(id).addEventListener('input',e=>formatMoneyInput(e.target)));
-function syncPayment(source,value){
+['ct-amount'].forEach(id=>$(id).addEventListener('input',e=>formatMoneyInput(e.target)));
+function syncPayment(group,source,value){
   const v=Math.max(0,Math.min(100,num(value)));
+  const advance=$(group+'-advance'), balance=$(group+'-balance'), range=$(group+'-payment-range');
   if(source==='advance'){
-    $('svc-advance').value=v; $('svc-balance').value=100-v; $('svc-payment-range').value=v;
+    advance.value=v; balance.value=100-v; range.value=v;
   }else{
-    $('svc-balance').value=v; $('svc-advance').value=100-v; $('svc-payment-range').value=100-v;
+    balance.value=v; advance.value=100-v; range.value=100-v;
   }
   assignedNo=''; renderPaper();
 }
-$('svc-payment-range').addEventListener('input',e=>syncPayment('advance',e.target.value));
-$('svc-advance').addEventListener('input',e=>syncPayment('advance',e.target.value));
-$('svc-balance').addEventListener('input',e=>syncPayment('balance',e.target.value));
+['svc','pur'].forEach(group=>{
+  $(group+'-payment-range').addEventListener('input',e=>syncPayment(group,'advance',e.target.value));
+  $(group+'-advance').addEventListener('input',e=>syncPayment(group,'advance',e.target.value));
+  $(group+'-balance').addEventListener('input',e=>syncPayment(group,'balance',e.target.value));
+});
 
 /* ---------- 담당자 세트 ----------
    담당자·전화번호·이메일을 한 묶음으로 저장해 두고, 목록에서 고르면 세 칸이 함께 채워진다.
@@ -1675,7 +1703,7 @@ function snapshot(){
       etc:$('ct-etc').value, attachments:state.kind==='purchase'?cleanPurchaseAttachments($('ct-attachments').value):$('ct-attachments').value
     };
     if(state.kind==='service') doc.contract.service={start:$('svc-start').value,end:$('svc-end').value,advance:num($('svc-advance').value),balance:num($('svc-balance').value)};
-    else doc.contract.purchase={total:num($('pur-total').value),guaranteeMode:$('pur-guarantee-mode').value,guarantee:$('pur-guarantee').value,delay:$('pur-delay').value,deliveryDate:$('pur-date').value,deliveryPlace:$('pur-place').value};
+    else doc.contract.purchase={advance:num($('pur-advance').value),balance:num($('pur-balance').value),guaranteeMode:$('pur-guarantee-mode').value,guarantee:$('pur-guarantee').value,delay:$('pur-delay').value,deliveryDate:$('pur-date').value,deliveryPlace:$('pur-place').value};
     doc.client=$('cp-name').value;
     doc.grand=num($('ct-amount').value);
   }
@@ -1743,9 +1771,10 @@ $('btn-print').onclick=()=>window.print();
 $('btn-reset').onclick=()=>{
   $('f-client').value=''; $('f-memo').value=''; $('f-period').value=''; $('f-date').value=todayStr();
   ['c-item','c-supply','c-origin','c-buyer-name','c-buyer-bizno','c-buyer-addr','c-date','c-qty','o-duedate','o-addr','o-mgr','o-tel',
-   'ct-amount','ct-subject','cp-name','cp-ceo','cp-bizno','cp-addr','cp-tel','svc-start','svc-end','pur-total','pur-date','pur-place','ct-etc']
+   'ct-amount','ct-subject','cp-name','cp-ceo','cp-bizno','cp-addr','cp-tel','svc-start','svc-end','pur-date','pur-place','ct-etc']
     .forEach(id=>{ const el=$(id); if(el) el.value=''; });
-  $('svc-payment-range').value='50'; $('svc-advance').value='50'; $('svc-balance').value='50'; $('pur-guarantee-mode').value='rate'; $('pur-guarantee').value='10%'; $('pur-delay').value='0.1%';
+  ['svc','pur'].forEach(group=>{ $(group+'-payment-range').value='50'; $(group+'-advance').value='50'; $(group+'-balance').value='50'; });
+  $('pur-guarantee-mode').value='rate'; $('pur-guarantee').value='10%'; $('pur-delay').value='0.1%'; updatePurchaseGuaranteeField();
   $('ct-attachments').value=state.kind==='purchase'?'1. 산출내역서 1부.':'1. 견적서 1부.';
   assignedNo=''; state.rows=[blankRow(),blankRow(),blankRow()];
   /* 열 이름·너비는 그 문서에만 적용된 설정이므로 함께 초기화한다 */
@@ -2037,7 +2066,9 @@ $('cfg-share').onclick=async()=>{
       const s=c.service||{}; const advance=s.advance==null?50:num(s.advance); const balance=s.balance==null?100-advance:num(s.balance);
       $('svc-start').value=s.start||''; $('svc-end').value=s.end||''; $('svc-advance').value=advance; $('svc-balance').value=balance; $('svc-payment-range').value=advance;
     }else{
-      const p=c.purchase||{}; $('pur-total').value=p.total?won(p.total):''; $('pur-guarantee-mode').value=p.guaranteeMode||'rate'; $('pur-guarantee').value=p.guarantee||'10%'; $('pur-delay').value=p.delay||'0.1%'; $('pur-date').value=p.deliveryDate||''; $('pur-place').value=p.deliveryPlace||'';
+      const p=c.purchase||{}; const advance=p.advance==null?50:num(p.advance); const balance=p.balance==null?100-advance:num(p.balance);
+      $('pur-advance').value=advance; $('pur-balance').value=balance; $('pur-payment-range').value=advance;
+      $('pur-guarantee-mode').value=p.guaranteeMode||'rate'; $('pur-guarantee').value=p.guarantee||'10%'; $('pur-delay').value=p.delay||'0.1%'; $('pur-date').value=p.deliveryDate||''; $('pur-place').value=p.deliveryPlace||''; updatePurchaseGuaranteeField();
     }
   }
 };
