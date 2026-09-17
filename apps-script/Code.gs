@@ -31,6 +31,7 @@ function doPost(e) {
       case 'contacts':      return out({ ok: true, contacts: listContacts() });
       case 'contactSave':   return out(saveContact(req.contact));
       case 'contactDelete': return out(deleteContact(req.mgr));
+      case 'seal':          return out(getCompanySeal());
       default:       return out({ ok: false, error: '알 수 없는 요청입니다' });
     }
   } catch (err) {
@@ -55,10 +56,29 @@ function uiMemo(payload) { return saveMemo(payload.no, payload.note); }
 function uiContacts()          { return { ok: true, contacts: listContacts() }; }
 function uiContactSave(c)      { return saveContact(c); }
 function uiContactDelete(mgr)  { return deleteContact(mgr); }
+function uiSeal()              { return getCompanySeal(); }
 
 function out(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+/* ───────── 회사 공용 도장 ─────────
+   스크립트 속성 SEAL_FILE_ID에 저장된 Google Drive 파일을 내려준다.
+   인감 이미지 자체는 공개 GitHub 저장소에 넣지 않는다. */
+function getCompanySeal() {
+  var fileId = PropertiesService.getScriptProperties().getProperty('SEAL_FILE_ID');
+  if (!fileId) return { ok: true, seal: '' };
+
+  var cache = CacheService.getScriptCache();
+  var cached = cache.get('company-seal-v1');
+  if (cached) return { ok: true, seal: cached };
+
+  var blob = DriveApp.getFileById(fileId).getBlob();
+  var dataUri = 'data:' + (blob.getContentType() || 'image/png') + ';base64,' +
+    Utilities.base64Encode(blob.getBytes());
+  cache.put('company-seal-v1', dataUri, 3600);
+  return { ok: true, seal: dataUri };
 }
 
 /* ───────── 시트 준비 ───────── */
