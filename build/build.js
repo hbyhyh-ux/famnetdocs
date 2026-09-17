@@ -17,8 +17,11 @@ const ASSETS = [
   { tag: 'FONT', dir: path.join(ROOT, 'src', 'fonts'), mime: 'font/woff2' },
   { tag: 'IMG',  dir: path.join(ROOT, 'src', 'img'),   mime: 'image/png' },
 ];
-const OUT_DIR = path.join(ROOT, 'dist');
-const OUT = path.join(OUT_DIR, 'index.html');
+const OUTPUTS = [
+  path.join(ROOT, 'dist', 'index.html'),
+  path.join(ROOT, 'index.html'),
+  path.join(ROOT, 'apps-script', 'index.html'),
+];
 
 let html = fs.readFileSync(SRC, 'utf8');
 
@@ -52,7 +55,9 @@ const close = (html.match(/\}/g) || []).length;
 if (styleCount !== 1) console.warn(`! <style> 블록이 ${styleCount}개입니다.`);
 if (open !== close) console.warn(`! 중괄호 불일치: { ${open} vs } ${close}`);
 
-fs.mkdirSync(OUT_DIR, { recursive: true });
-fs.writeFileSync(OUT, html);
-console.log(`\n✓ dist/index.html  ${(html.length / 1024).toFixed(0)}KB`);
-console.log('  → Apps Script 의 index.html 에 전체 붙여넣고 새 버전으로 재배포하세요.');
+for (const out of OUTPUTS) {
+  fs.mkdirSync(path.dirname(out), { recursive: true });
+  fs.writeFileSync(out, html);
+  console.log(`✓ ${path.relative(ROOT, out)}  ${(html.length / 1024).toFixed(0)}KB`);
+}
+console.log('\n  → GitHub Pages와 Apps Script 배포본을 함께 갱신했습니다.');

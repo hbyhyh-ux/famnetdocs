@@ -595,8 +595,10 @@
     <label class="f"><i>웹앱 URL</i><input class="in" id="cfg-url" placeholder="https://script.google.com/macros/s/.../exec"></label>
     <label class="f"><i>팀 코드</i><input class="in" id="cfg-code" placeholder="스크립트에 설정한 코드"></label>
     <p class="note">비워 두면 이 브라우저에만 기록이 남습니다. 연결하면 팀 전원이 같은 원장을 쓰고 문서번호가 겹치지 않습니다.</p>
+    <p class="note">팀원용 링크에는 연결 정보가 포함됩니다. 원장 사용 권한이 있는 사람에게만 공유하세요.</p>
     <div class="btn-row">
       <button class="btn" id="cfg-save">연결</button>
+      <button class="btn" id="cfg-share">팀원용 링크 복사</button>
       <button class="btn" id="cfg-close">닫기</button>
     </div>
   </div>
@@ -1655,6 +1657,41 @@ $('cfg-save').onclick=async()=>{
   toast(online?'공용 원장에 연결되었습니다':'연결하지 못했습니다 · '+lastConnError);
 };
 
+function encodeInvite(value){
+  const bytes = new TextEncoder().encode(JSON.stringify(value));
+  let binary = '';
+  bytes.forEach(b=>binary += String.fromCharCode(b));
+  return btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+function decodeInvite(value){
+  let b64 = value.replace(/-/g,'+').replace(/_/g,'/');
+  while(b64.length % 4) b64 += '=';
+  const binary = atob(b64);
+  const bytes = Uint8Array.from(binary, c=>c.charCodeAt(0));
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+function inviteFromHash(){
+  const match = location.hash.match(/^#connect=([^&]+)$/);
+  if(!match) return null;
+  try{
+    const invited = decodeInvite(match[1]);
+    if(!invited || !/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(invited.url) || !invited.code) return null;
+    return {url:invited.url, code:invited.code};
+  }catch(e){ return null; }
+  finally { history.replaceState(null, '', location.pathname + location.search); }
+}
+$('cfg-share').onclick=async()=>{
+  const shared = {url:$('cfg-url').value.trim(), code:$('cfg-code').value.trim()};
+  if(!shared.url || !shared.code){ toast('웹앱 URL과 팀 코드를 먼저 입력해 주세요'); return; }
+  const link = location.origin + location.pathname + '#connect=' + encodeInvite(shared);
+  try{
+    await navigator.clipboard.writeText(link);
+    toast('팀원용 자동 연결 링크를 복사했습니다');
+  }catch(e){
+    window.prompt('아래 링크를 복사하세요', link);
+  }
+};
+
 /* ---------- 시작 ---------- */
 $('f-date').value = todayStr();
 state.rows=[blankRow(),blankRow(),blankRow()];
@@ -1667,6 +1704,8 @@ applyPreviewMode();
 pickBackend().then(async()=>{
   const savedCfg = await readVal(CFG_KEY);
   if(savedCfg){ try{ cfg=JSON.parse(savedCfg); }catch(e){} }
+  const invitedCfg = inviteFromHash();
+  if(invitedCfg){ cfg=invitedCfg; await saveVal(CFG_KEY, JSON.stringify(cfg)); }
   /* 열 이름·너비는 그 문서에만 적용되는 설정이라 접속할 때마다 기본값에서 시작한다.
      (과거 문서를 불러오면 발행 당시 값이 복원된다) */
   hdr = { quote:{}, quote_total:{}, invoice:{}, order:{} };
